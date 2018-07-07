@@ -31,7 +31,7 @@ e.g.
 case class AggregateId[E](id: String)
 case class AggregateVersion[E](version: Int)
 ```
-and type parameter `E` should be an `Event` type rather that `Aggregate` type
+and type parameter `E` should be an `Event` type but not `Aggregate` type
 
 ## Consequences
 
