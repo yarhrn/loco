@@ -1,9 +1,10 @@
 package loco
 
 import java.time.Instant
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-import cats.Monad
+import cats.{Functor, Monad}
 import cats.data.NonEmptyList
 import cats.effect.{IO, Sync, Timer}
 import loco.domain.{AggregateId, AggregateVersion, MetaEvent}
@@ -25,6 +26,16 @@ trait AggregateBuilder[A, E] {
   def apply(aggregate: A, metaEvent: MetaEvent[E]): A
 }
 
+trait EventSourcing[F[_], E] {
+  def saveEvents(events: NonEmptyList[E])(implicit f:Functor[F]): F[AggregateId[E]] = {
+    import cats.implicits._
+    val id = AggregateId[E](UUID.randomUUID().toString)
+    val version = AggregateVersion[E](0)
+    saveEvents(id, version, events).map(_ => id)
+  }
+
+  def saveEvents(id: AggregateId[E], lastKnownVersion: AggregateVersion[E], events: NonEmptyList[E]): F[Unit]
+}
 
 class ES[F[_], E, A](aggregateBuilder: AggregateBuilder[A, E],
                      repository: EventsRepository[F, E],
@@ -32,11 +43,11 @@ class ES[F[_], E, A](aggregateBuilder: AggregateBuilder[A, E],
                      viewsWithAggregates: List[ViewWithAggregate[F, A, E]],
                      viewsWithEvents: List[ViewWithEvents[F, E]],
                      errorReporter: ErrorReporter[F])
-                    (implicit timer: Timer[F], monad: Sync[F]) {
+                    (implicit timer: Timer[F], monad: Sync[F]) extends EventSourcing[F, E] {
 
   import cats.implicits._
 
-  def saveEvents(id: AggregateId[E], version: AggregateVersion[E], events: NonEmptyList[E]): F[Unit] = {
+  override def saveEvents(id: AggregateId[E], version: AggregateVersion[E], events: NonEmptyList[E]): F[Unit] = {
 
     for {
       instant <- Timer[F].clockRealTime(TimeUnit.MILLISECONDS).map(Instant.ofEpochMilli)

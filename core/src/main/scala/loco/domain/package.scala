@@ -7,7 +7,7 @@ import cats.data.NonEmptyList
 package object domain {
 
 
-  class AggregateId[E](id: String)
+  case class AggregateId[E](id: String)
 
   case class AggregateVersion[E](version: Int)
 
