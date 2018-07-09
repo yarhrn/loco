@@ -14,6 +14,7 @@ lazy val core = (project in file("core")).
       cats,
       catsEffect,
       monix,
+      doobie,
       scalaTest % Test
     )
   )

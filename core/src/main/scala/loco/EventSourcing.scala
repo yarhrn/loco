@@ -4,9 +4,9 @@ import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-import cats.{Functor, Monad}
+import cats.Functor
 import cats.data.NonEmptyList
-import cats.effect.{IO, Sync, Timer}
+import cats.effect.{Sync, Timer}
 import loco.domain.{AggregateId, AggregateVersion, MetaEvent}
 import loco.repository.EventsRepository
 import loco.view._
@@ -47,11 +47,11 @@ class ES[F[_], E, A](aggregateBuilder: AggregateBuilder[A, E],
 
   import cats.implicits._
 
-  override def saveEvents(id: AggregateId[E], version: AggregateVersion[E], events: NonEmptyList[E]): F[Unit] = {
+  override def saveEvents(id: AggregateId[E], lastKnownVersion: AggregateVersion[E], events: NonEmptyList[E]): F[Unit] = {
 
     for {
       instant <- Timer[F].clockRealTime(TimeUnit.MILLISECONDS).map(Instant.ofEpochMilli)
-      metaEvents = MetaEvent.fromRawEvents(id, instant, version, events)
+      metaEvents = MetaEvent.fromRawEvents(id, instant, lastKnownVersion, events)
       _ <- repository.saveEvents(metaEvents)
 
       metaEventsList = metaEvents.toList
@@ -118,20 +118,7 @@ class ES[F[_], E, A](aggregateBuilder: AggregateBuilder[A, E],
     repository.fetchEvents(id, Some(version)).foldLeftL(aggregateBuilder.empty)((aggregate, event) => aggregateBuilder(aggregate, event))
   }
 
-  implicit class Unitify[F[_] : Monad, A](fa: F[A]) {
-    def unitify = fa *> Monad[F].unit
+  implicit class Unitify[F[_] : Functor, A](fa: F[A]) {
+    def unitify: F[Unit] = fa.map(_ => Unit)
   }
-
-
-}
-
-object Main {
-
-  class Account
-
-  class AccountEvent
-
-  val e: EventsRepository[IO, AccountEvent] = ???
-
-  val value: IO[Account] = e.fetchEvents(???).foldLeftL((??? : Account))((_, _) => (??? : Account))
 }
