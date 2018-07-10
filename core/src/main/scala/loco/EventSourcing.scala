@@ -3,7 +3,6 @@ package loco
 import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-
 import cats.{Functor, Monad}
 import cats.data.NonEmptyList
 import cats.effect.{Sync, Timer}
@@ -11,20 +10,8 @@ import loco.domain._
 import loco.repository.EventsRepository
 import loco.view._
 import monix.tail.Iterant
-
+import loco.util._
 import scala.language.higherKinds
-
-
-trait ErrorReporter[F[_]] {
-  def error(throwable: Throwable): F[Unit]
-}
-
-
-trait AggregateBuilder[A <: Aggregate[E], E <: Event] {
-  def empty: (AggregateId[E] => A)
-
-  def apply(aggregate: A, metaEvent: MetaEvent[E]): A
-}
 
 trait EventSourcing[F[_], E <: Event, A <: Aggregate[E]] {
   def saveEvents(events: NonEmptyList[E])(implicit f: Functor[F]): F[AggregateId[E]] = {
@@ -36,7 +23,7 @@ trait EventSourcing[F[_], E <: Event, A <: Aggregate[E]] {
 
   def saveEvents(id: AggregateId[E], lastKnownVersion: AggregateVersion[E], events: NonEmptyList[E]): F[Unit]
 
-  def fetchAggregate(id: AggregateId[E]): F[Option[A]]
+  def fetchMetaAggregate(id: AggregateId[E]): F[Option[MetaAggregate[E, A]]]
 }
 
 class ES[F[_], E <: Event, A <: Aggregate[E]](aggregateBuilder: AggregateBuilder[A, E],
@@ -130,18 +117,14 @@ class ES[F[_], E <: Event, A <: Aggregate[E]](aggregateBuilder: AggregateBuilder
     repository.fetchEvents(id, Some(version)).foldLeftL(aggregateBuilder.empty(id))((aggregate, event) => aggregateBuilder(aggregate, event))
   }
 
-  implicit class Unitify[F[_] : Functor, A](fa: F[A]) {
-    def unitify: F[Unit] = fa.map(_ => Unit)
-  }
-
-  override def fetchAggregate(id: AggregateId[E]): F[Option[A]] = {
+  override def fetchMetaAggregate(id: AggregateId[E]): F[Option[MetaAggregate[E, A]]] = {
     val builder: MetaAggregateBuilder[E, A] = new MetaAggregateBuilder[E, A](aggregateBuilder)
     repository.fetchEvents(id).foldLeftL(builder.empty(id))((agr, event) => builder(agr, event)).map {
       metaAggregate =>
         if (metaAggregate.aggregateVersion.version == 0) {
           None
         } else {
-          Some(metaAggregate.aggregate)
+          Some(metaAggregate)
         }
     }
 

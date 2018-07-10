@@ -43,12 +43,11 @@ class ExampleSpec extends FlatSpec with Matchers {
 
     val id = eventSourcing.saveEvents(NonEmptyList.of(event)).unsafeRunSync()
 
-    val instantCurrentTimeMillis = Instant.ofEpochMilli(currentTimeMillis)
     val metaEvents = eventRepository.fetchEvents(id).toListL.unsafeRunSync()
     metaEvents should have size 1
-    metaEvents.head should matchPattern { case MetaEvent(id, event, instantCurrentTimeMillis, AggregateVersion(1)) => }
+    metaEvents.head shouldEqual MetaEvent(id, event, Instant.ofEpochMilli(currentTimeMillis), AggregateVersion(1))
 
-    eventSourcing.fetchAggregate(id).unsafeRunSync()
+    assert(eventSourcing.fetchMetaAggregate(id).map(_.get.aggregate).unsafeRunSync() == Transaction(id, TransactionStatus.New, 10, Currency.getInstance("BRL"), "provider-account-id-1", None, None))
   }
 
 }

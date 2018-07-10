@@ -15,6 +15,7 @@ package object domain {
   case class AggregateVersion[E <: Event](version: Int)
 
 
+  //todo add event name and event metadata
   case class MetaEvent[E <: Event](aggregateId: AggregateId[E],
                                    domainEvent: E,
                                    createdAt: Instant,
@@ -29,9 +30,6 @@ package object domain {
   }
 
   case class MetaAggregate[E <: Event, A <: Aggregate[E]](aggregate: A, aggregateVersion: AggregateVersion[E])
-
-  //                   eventName: String,
-  //                   eventMetadataLString)
 
   object MetaEvent {
     def fromRawEvents[E <: Event](aggregateId: AggregateId[E],
