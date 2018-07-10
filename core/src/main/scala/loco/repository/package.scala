@@ -3,15 +3,16 @@ package loco
 import cats.data.NonEmptyList
 import cats.effect.Sync
 import doobie.util.transactor.Transactor
-import loco.domain.{AggregateId, AggregateVersion, MetaEvent}
+import loco.domain.{AggregateId, AggregateVersion, Event, MetaEvent}
 import monix.execution.misc.NonFatal
 import monix.tail.Iterant
 import monix.tail.Iterant.{Halt, Last, Next, Suspend}
+
 import scala.language.higherKinds
 
 package object repository {
 
-  trait EventsRepository[F[_], E] {
+  trait EventsRepository[F[_], E <: Event] {
 
     def fetchEvents(id: AggregateId[E], version: Option[AggregateVersion[E]] = None): Iterant[F, MetaEvent[E]]
 
@@ -19,7 +20,7 @@ package object repository {
 
   }
 
-  class DoobieEventRepository[F[_], E](transactor: Transactor[F]) extends EventsRepository[F, E] {
+  class DoobieEventRepository[F[_], E <: Event](transactor: Transactor[F]) extends EventsRepository[F, E] {
 
     override def fetchEvents(id: AggregateId[E], version: Option[AggregateVersion[E]]): Iterant[F, MetaEvent[E]] = ???
 

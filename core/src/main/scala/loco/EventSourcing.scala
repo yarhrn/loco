@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit
 import cats.Functor
 import cats.data.NonEmptyList
 import cats.effect.{Sync, Timer}
-import loco.domain.{AggregateId, AggregateVersion, MetaEvent}
+import loco.domain.{AggregateId, AggregateVersion, Event, MetaEvent}
 import loco.repository.EventsRepository
 import loco.view._
 import monix.tail.Iterant
@@ -20,13 +20,13 @@ trait ErrorReporter[F[_]] {
 }
 
 
-trait AggregateBuilder[A, E] {
+trait AggregateBuilder[A, E <: Event] {
   def empty: A
 
   def apply(aggregate: A, metaEvent: MetaEvent[E]): A
 }
 
-trait EventSourcing[F[_], E] {
+trait EventSourcing[F[_], E <: Event] {
   def saveEvents(events: NonEmptyList[E])(implicit f:Functor[F]): F[AggregateId[E]] = {
     import cats.implicits._
     val id = AggregateId[E](UUID.randomUUID().toString)
@@ -37,7 +37,7 @@ trait EventSourcing[F[_], E] {
   def saveEvents(id: AggregateId[E], lastKnownVersion: AggregateVersion[E], events: NonEmptyList[E]): F[Unit]
 }
 
-class ES[F[_], E, A](aggregateBuilder: AggregateBuilder[A, E],
+class ES[F[_], E <: Event, A](aggregateBuilder: AggregateBuilder[A, E],
                      repository: EventsRepository[F, E],
                      views: List[View[F, E]],
                      viewsWithAggregates: List[ViewWithAggregate[F, A, E]],

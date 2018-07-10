@@ -7,15 +7,15 @@ import scala.language.higherKinds
 
 package object view {
 
-  trait View[F[_], E] {
+  trait View[F[_], E <: Event] {
     def handle(event: MetaEvent[E]): F[Unit]
   }
 
-  trait ViewWithEvents[F[_], E] {
+  trait ViewWithEvents[F[_], E <: Event] {
     def handle(event: MetaEvent[E], events: Iterant[F, MetaEvent[E]]): F[Unit]
   }
 
-  trait ViewWithAggregate[F[_], A, E] {
+  trait ViewWithAggregate[F[_], A, E <: Event] {
     def handle(event: MetaEvent[E], aggregate: A): F[Unit]
   }
 

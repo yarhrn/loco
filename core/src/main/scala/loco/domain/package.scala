@@ -22,7 +22,7 @@ package object domain {
   //                   eventMetadataLString)
 
   object MetaEvent {
-    def fromRawEvents[E](aggregateId: AggregateId[E],
+    def fromRawEvents[E <: Event](aggregateId: AggregateId[E],
                          instant: Instant,
                          lastKnownVersion: AggregateVersion[E],
                          events: NonEmptyList[E]): NonEmptyList[MetaEvent[E]] = {
