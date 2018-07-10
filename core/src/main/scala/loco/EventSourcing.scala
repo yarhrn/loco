@@ -4,10 +4,10 @@ import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-import cats.Functor
+import cats.{Functor, Monad}
 import cats.data.NonEmptyList
 import cats.effect.{Sync, Timer}
-import loco.domain.{AggregateId, AggregateVersion, Event, MetaEvent}
+import loco.domain._
 import loco.repository.EventsRepository
 import loco.view._
 import monix.tail.Iterant
@@ -20,14 +20,14 @@ trait ErrorReporter[F[_]] {
 }
 
 
-trait AggregateBuilder[A, E <: Event] {
-  def empty: A
+trait AggregateBuilder[A <: Aggregate[E], E <: Event] {
+  def empty: (AggregateId[E] => A)
 
   def apply(aggregate: A, metaEvent: MetaEvent[E]): A
 }
 
-trait EventSourcing[F[_], E <: Event] {
-  def saveEvents(events: NonEmptyList[E])(implicit f:Functor[F]): F[AggregateId[E]] = {
+trait EventSourcing[F[_], E <: Event, A <: Aggregate[E]] {
+  def saveEvents(events: NonEmptyList[E])(implicit f: Functor[F]): F[AggregateId[E]] = {
     import cats.implicits._
     val id = AggregateId[E](UUID.randomUUID().toString)
     val version = AggregateVersion[E](0)
@@ -35,15 +35,17 @@ trait EventSourcing[F[_], E <: Event] {
   }
 
   def saveEvents(id: AggregateId[E], lastKnownVersion: AggregateVersion[E], events: NonEmptyList[E]): F[Unit]
+
+  def fetchAggregate(id: AggregateId[E]): F[Option[A]]
 }
 
-class ES[F[_], E <: Event, A](aggregateBuilder: AggregateBuilder[A, E],
-                     repository: EventsRepository[F, E],
-                     views: List[View[F, E]],
-                     viewsWithAggregates: List[ViewWithAggregate[F, A, E]],
-                     viewsWithEvents: List[ViewWithEvents[F, E]],
-                     errorReporter: ErrorReporter[F])
-                    (implicit timer: Timer[F], monad: Sync[F]) extends EventSourcing[F, E] {
+class ES[F[_], E <: Event, A <: Aggregate[E]](aggregateBuilder: AggregateBuilder[A, E],
+                                              repository: EventsRepository[F, E],
+                                              views: List[View[F, E]],
+                                              viewsWithAggregates: List[ViewWithAggregate[F, A, E]],
+                                              viewsWithEvents: List[ViewWithEvents[F, E]],
+                                              errorReporter: ErrorReporter[F])
+                                             (implicit timer: Timer[F], monad: Sync[F]) extends EventSourcing[F, E, A] {
 
   import cats.implicits._
 
@@ -79,7 +81,9 @@ class ES[F[_], E <: Event, A](aggregateBuilder: AggregateBuilder[A, E],
     } yield {
       view.handle(event)
     }
-    actions.sequence.unitify
+    actions.sequence.unitify.adaptError {
+      case ex => new RuntimeException(ex)
+    }
   }
 
   private def notifyViewsWithEvents(id: AggregateId[E], events: List[MetaEvent[E]]): F[Unit] = {
@@ -93,32 +97,53 @@ class ES[F[_], E <: Event, A](aggregateBuilder: AggregateBuilder[A, E],
         case ex => errorReporter.error(ex)
       }
     }
-    actions.sequence.unitify
+    actions.sequence.unitify.adaptError {
+      case ex => new RuntimeException(ex)
+    }
   }
 
   private def notifyWithAggregate(id: AggregateId[E], events: List[MetaEvent[E]]): F[Unit] = {
 
-    val actions: List[F[Unit]] = for {
-      event <- events
-    } yield {
-      {
-        for {
-          aggregate <- buildAggregate(id, event.version)
-          _ <- viewsWithAggregates.map(view => view.handle(event, aggregate)).sequence
-        } yield ()
-      }.recoverWith {
-        case ex => errorReporter.error(ex)
-      }
+    if (views.nonEmpty) {
+      val actions: List[F[Unit]] = for {
+        event <- events
+      } yield {
+        {
+          for {
+            aggregate <- buildAggregate(id, event.version)
+            _ <- viewsWithAggregates.map(view => view.handle(event, aggregate)).sequence
+          } yield ()
+        }.recoverWith {
+          case ex => errorReporter.error(ex)
+        }
 
+      }
+      actions.sequence.unitify.adaptError {
+        case ex => new RuntimeException(ex)
+      }
+    } else {
+      Monad[F].unit
     }
-    actions.sequence.unitify
   }
 
   def buildAggregate(id: AggregateId[E], version: AggregateVersion[E]): F[A] = {
-    repository.fetchEvents(id, Some(version)).foldLeftL(aggregateBuilder.empty)((aggregate, event) => aggregateBuilder(aggregate, event))
+    repository.fetchEvents(id, Some(version)).foldLeftL(aggregateBuilder.empty(id))((aggregate, event) => aggregateBuilder(aggregate, event))
   }
 
   implicit class Unitify[F[_] : Functor, A](fa: F[A]) {
     def unitify: F[Unit] = fa.map(_ => Unit)
+  }
+
+  override def fetchAggregate(id: AggregateId[E]): F[Option[A]] = {
+    val builder: MetaAggregateBuilder[E, A] = new MetaAggregateBuilder[E, A](aggregateBuilder)
+    repository.fetchEvents(id).foldLeftL(builder.empty(id))((agr, event) => builder(agr, event)).map {
+      metaAggregate =>
+        if (metaAggregate.aggregateVersion.version == 0) {
+          None
+        } else {
+          Some(metaAggregate.aggregate)
+        }
+    }
+
   }
 }

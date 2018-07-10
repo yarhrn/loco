@@ -8,6 +8,7 @@ import monix.execution.misc.NonFatal
 import monix.tail.Iterant
 import monix.tail.Iterant.{Halt, Last, Next, Suspend}
 
+import scala.collection.immutable
 import scala.language.higherKinds
 
 package object repository {
@@ -26,6 +27,22 @@ package object repository {
 
     override def saveEvents(events: NonEmptyList[MetaEvent[E]]): F[Unit] = ???
 
+  }
+
+  case class InMemoryRepository[F[_] : Sync, E <: Event](var storage: Map[AggregateId[E], List[MetaEvent[E]]] = Map.empty[AggregateId[E], List[MetaEvent[E]]]) extends EventsRepository[F, E] {
+
+
+    override def fetchEvents(id: AggregateId[E], version: Option[AggregateVersion[E]]): Iterant[F, MetaEvent[E]] = {
+      Iterant[F]
+        .liftF(Sync[F].delay(storage(id).take(version.map(_.version).getOrElse(Integer.MAX_VALUE))))
+        .flatMap(Iterant.fromList(_))
+
+    }
+
+    override def saveEvents(events: NonEmptyList[MetaEvent[E]]): F[Unit] = Sync[F].delay {
+      val id = events.head.aggregateId
+      storage = storage + (id -> storage.getOrElse(id, List()).++(events.toList))
+    }
   }
 
   object DoobieEventRepository {
