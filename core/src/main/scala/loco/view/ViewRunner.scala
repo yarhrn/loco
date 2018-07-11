@@ -9,6 +9,7 @@ import monix.tail.Iterant
 import cats.implicits._
 import loco.repository.EventsRepository
 import loco.util._
+import scala.language.higherKinds
 
 case class ViewRunner[F[_] : Sync, E <: Event, A <: Aggregate[E]](views: List[View[F, E]],
                                                              viewsWithAggregates: List[ViewWithAggregate[F, A, E]],

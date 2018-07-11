@@ -45,11 +45,6 @@ class ES[F[_], E <: Event, A <: Aggregate[E]](aggregateBuilder: AggregateBuilder
     } yield ()
   }
 
-
-  def buildAggregate(id: AggregateId[E], version: AggregateVersion[E]): F[A] = {
-    repository.fetchEvents(id, Some(version)).foldLeftL(aggregateBuilder.empty(id))((aggregate, event) => aggregateBuilder(aggregate, event))
-  }
-
   override def fetchMetaAggregate(id: AggregateId[E]): F[Option[MetaAggregate[E, A]]] = {
     val builder: MetaAggregateBuilder[E, A] = new MetaAggregateBuilder[E, A](aggregateBuilder)
     repository.fetchEvents(id).foldLeftL(builder.empty(id))((agr, event) => builder(agr, event)).map {

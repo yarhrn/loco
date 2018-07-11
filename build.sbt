@@ -24,4 +24,4 @@ lazy val example = (project in file("example")).
     inThisBuild(common),
     name := "example",
     libraryDependencies ++= Seq(scalaTest, scalaMock)
-  ).dependsOn(core)
+  ).dependsOn(core % "test->test;compile->compile")

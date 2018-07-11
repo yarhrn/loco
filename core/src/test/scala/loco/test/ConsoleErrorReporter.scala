@@ -21,7 +21,7 @@ trait ConsoleErrorReporterMatcher[F[_]] {
 
   def haveError: Matcher[ConsoleErrorReporter[F]] = {
     (left: ConsoleErrorReporter[F]) =>
-      MatchResult(left.errors.nonEmpty, s"no errors occurred, but expected", s"error occurred ${left.errors}", IndexedSeq())
+      MatchResult(left.errors.nonEmpty, s"no errors occurred, but expected", s"error occurred ${left.errors}, but no expected", IndexedSeq())
   }
 
 }

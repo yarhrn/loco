@@ -21,7 +21,7 @@ package object domain {
                                    createdAt: Instant,
                                    version: AggregateVersion[E])
 
-  class MetaAggregateBuilder[E <: Event, A <: Aggregate[E]](aggregateBuilder: AggregateBuilder[A, E]) {
+  case class MetaAggregateBuilder[E <: Event, A <: Aggregate[E]](aggregateBuilder: AggregateBuilder[A, E]) {
     def empty(aggregateId: AggregateId[E]) = MetaAggregate[E, A](aggregateBuilder.empty(aggregateId), AggregateVersion(0))
 
     def apply(aggregate: MetaAggregate[E, A], metaEvent: MetaEvent[E]): MetaAggregate[E, A] = {
