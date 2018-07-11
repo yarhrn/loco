@@ -11,11 +11,11 @@ lazy val core = (project in file("core")).
     inThisBuild(common),
     name := "core",
     libraryDependencies ++= Seq(
-//      cats,
-//      catsEffect,
+      //      cats,
+      //      catsEffect,
       monix,
       doobie,
-      scalaTest % Test
+      scalaTest
     )
   )
 
@@ -23,5 +23,5 @@ lazy val example = (project in file("example")).
   settings(
     inThisBuild(common),
     name := "example",
-    libraryDependencies ++= Seq(scalaTest % Test)
+    libraryDependencies ++= Seq(scalaTest, scalaMock)
   ).dependsOn(core)

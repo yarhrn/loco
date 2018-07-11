@@ -3,14 +3,12 @@ package loco
 import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-import cats.{Functor, Monad}
+import cats.Functor
 import cats.data.NonEmptyList
 import cats.effect.{Sync, Timer}
 import loco.domain._
 import loco.repository.EventsRepository
 import loco.view._
-import monix.tail.Iterant
-import loco.util._
 import scala.language.higherKinds
 
 trait EventSourcing[F[_], E <: Event, A <: Aggregate[E]] {
@@ -33,6 +31,7 @@ class ES[F[_], E <: Event, A <: Aggregate[E]](aggregateBuilder: AggregateBuilder
                                               viewsWithEvents: List[ViewWithEvents[F, E]],
                                               errorReporter: ErrorReporter[F])
                                              (implicit timer: Timer[F], monad: Sync[F]) extends EventSourcing[F, E, A] {
+  private val viewRunner = ViewRunner(views, viewsWithAggregates, viewsWithEvents, repository, aggregateBuilder, errorReporter)
 
   import cats.implicits._
 
@@ -42,76 +41,10 @@ class ES[F[_], E <: Event, A <: Aggregate[E]](aggregateBuilder: AggregateBuilder
       instant <- Timer[F].clockRealTime(TimeUnit.MILLISECONDS).map(Instant.ofEpochMilli)
       metaEvents = MetaEvent.fromRawEvents(id, instant, lastKnownVersion, events)
       _ <- repository.saveEvents(metaEvents)
-
-      metaEventsList = metaEvents.toList
-
-      _ <- List(
-        notifyViews(metaEventsList),
-        notifyViewsWithEvents(id, metaEventsList),
-        notifyWithAggregate(id, metaEventsList))
-        .sequence
-        .unitify
-        .recoverWith {
-          case ex => errorReporter.error(ex)
-        }
-
-    } yield {
-
-      ()
-    }
+      _ <- viewRunner.notify(metaEvents)
+    } yield ()
   }
 
-  private def notifyViews(events: List[MetaEvent[E]]): F[Unit] = {
-    val actions: List[F[Unit]] = for {
-      view <- views
-      event <- events
-    } yield {
-      view.handle(event)
-    }
-    actions.sequence.unitify.adaptError {
-      case ex => new RuntimeException(ex)
-    }
-  }
-
-  private def notifyViewsWithEvents(id: AggregateId[E], events: List[MetaEvent[E]]): F[Unit] = {
-    val actions: List[F[Unit]] = for {
-      event <- events
-
-      view <- viewsWithEvents
-    } yield {
-      val allEvents: Iterant[F, MetaEvent[E]] = repository.fetchEvents(id, Some(event.version)) // TODO we can optimize for small amount of events
-      view.handle(event, allEvents).recoverWith {
-        case ex => errorReporter.error(ex)
-      }
-    }
-    actions.sequence.unitify.adaptError {
-      case ex => new RuntimeException(ex)
-    }
-  }
-
-  private def notifyWithAggregate(id: AggregateId[E], events: List[MetaEvent[E]]): F[Unit] = {
-
-    if (views.nonEmpty) {
-      val actions: List[F[Unit]] = for {
-        event <- events
-      } yield {
-        {
-          for {
-            aggregate <- buildAggregate(id, event.version)
-            _ <- viewsWithAggregates.map(view => view.handle(event, aggregate)).sequence
-          } yield ()
-        }.recoverWith {
-          case ex => errorReporter.error(ex)
-        }
-
-      }
-      actions.sequence.unitify.adaptError {
-        case ex => new RuntimeException(ex)
-      }
-    } else {
-      Monad[F].unit
-    }
-  }
 
   def buildAggregate(id: AggregateId[E], version: AggregateVersion[E]): F[A] = {
     repository.fetchEvents(id, Some(version)).foldLeftL(aggregateBuilder.empty(id))((aggregate, event) => aggregateBuilder(aggregate, event))

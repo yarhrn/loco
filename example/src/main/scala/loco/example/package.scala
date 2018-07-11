@@ -33,7 +33,7 @@ package object example {
                          providerTransactionId: Option[String]) extends Aggregate[TransactionEvent]
 
   object TransactionBuilder extends AggregateBuilder[Transaction, TransactionEvent] {
-    override def empty: AggregateId[TransactionEvent] => Transaction = (id: AggregateId[TransactionEvent]) => Transaction(id, null, null, null, null, None, None)
+    override def empty(id: AggregateId[TransactionEvent]): Transaction = Transaction(id, null, null, null, null, None, None)
 
     override def apply(aggregate: Transaction, metaEvent: MetaEvent[TransactionEvent]): Transaction = {
       metaEvent.domainEvent match {

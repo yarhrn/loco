@@ -2,52 +2,51 @@ package loco.example
 
 import java.time.Instant
 import java.util.Currency
-import java.util.concurrent.TimeUnit
 
 import cats.data.NonEmptyList
-import cats.effect.{IO, Timer}
-import loco.domain.{AggregateVersion, MetaEvent}
+import cats.effect.IO
+import loco.domain.{AggregateId, AggregateVersion, MetaEvent}
 import loco.repository._
-import loco.{ES, ErrorReporter}
+import loco.test.{ConsoleErrorReporter, ConsoleErrorReporterMatcher, FakeTimer}
+import loco.view.View
+import loco.ES
+import org.scalamock.scalatest.MockFactory
 import org.scalatest._
 
-import scala.concurrent.duration.{FiniteDuration, TimeUnit}
-
-class ExampleSpec extends FlatSpec with Matchers {
+class ExampleSpec extends FlatSpec with Matchers with MockFactory {
 
   trait EventSourcingContext {
-    var currentTimeMillis = System.currentTimeMillis()
-
-    def tick = currentTimeMillis + 1000
-
-    implicit val timer = new Timer[IO] {
-      override def clockRealTime(unit: TimeUnit): IO[Long] = IO(TimeUnit.MILLISECONDS.convert(currentTimeMillis, unit))
-
-      override def clockMonotonic(unit: TimeUnit): IO[Long] = clockRealTime(unit)
-
-      override def sleep(duration: FiniteDuration): IO[Unit] = IO.unit
-
-      override def shift: IO[Unit] = IO.unit
-    }
-    val errorReporter = new ErrorReporter[IO] {
-      override def error(throwable: Throwable): IO[Unit] = IO(throwable.printStackTrace())
-    }
+    val mockedView = stub[View[IO, TransactionEvent]]
+    implicit val timer: FakeTimer[IO] = new FakeTimer[IO]()
+    val errorReporter: ConsoleErrorReporter[IO] = new ConsoleErrorReporter[IO]()
     val eventRepository = InMemoryRepository[IO, TransactionEvent]()
-    val eventSourcing = new ES[IO, TransactionEvent, Transaction](TransactionBuilder, eventRepository, List(), List(), List(), errorReporter)
+    val eventSourcing = new ES[IO, TransactionEvent, Transaction](TransactionBuilder, eventRepository, List(mockedView), List(), List(), errorReporter)
+  }
+
+  trait TransactionContext {
+    val eventTransactionCreated = TransactionCreated(10, Currency.getInstance("BRL"), "provider-account-id-1")
+
+    def aggregateTransactionCreated(id: AggregateId[TransactionEvent]) = Transaction(id, TransactionStatus.New, 10, Currency.getInstance("BRL"), "provider-account-id-1", None, None)
+
+    def metaEventTransactionCreated(id: AggregateId[TransactionEvent], instant: Instant) = MetaEvent[TransactionEvent](id, eventTransactionCreated, instant, AggregateVersion(1))
+
   }
 
 
-  "A EventSourcing" should "generate id and save meta events with proper version" in new EventSourcingContext {
+  "A EventSourcing" should "generate id and save meta events with proper version and invoke view" in new EventSourcingContext with TransactionContext with ConsoleErrorReporterMatcher[IO] {
+    (mockedView.handle _).when(*).returns(IO.unit)
 
-    val event = TransactionCreated(10, Currency.getInstance("BRL"), "provider-account-id-1")
-
-    val id = eventSourcing.saveEvents(NonEmptyList.of(event)).unsafeRunSync()
+    val id = eventSourcing.saveEvents(NonEmptyList.of(eventTransactionCreated)).unsafeRunSync()
 
     val metaEvents = eventRepository.fetchEvents(id).toListL.unsafeRunSync()
     metaEvents should have size 1
-    metaEvents.head shouldEqual MetaEvent(id, event, Instant.ofEpochMilli(currentTimeMillis), AggregateVersion(1))
+    metaEvents.head shouldEqual metaEventTransactionCreated(id, timer.instant)
 
-    assert(eventSourcing.fetchMetaAggregate(id).map(_.get.aggregate).unsafeRunSync() == Transaction(id, TransactionStatus.New, 10, Currency.getInstance("BRL"), "provider-account-id-1", None, None))
+    errorReporter shouldNot haveError
+    assert(eventSourcing.fetchMetaAggregate(id).map(_.get.aggregate).unsafeRunSync() == aggregateTransactionCreated(id))
+
+    (mockedView.handle _).verify(metaEventTransactionCreated(id, timer.instant))
   }
+
 
 }
