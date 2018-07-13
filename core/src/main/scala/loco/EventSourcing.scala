@@ -24,14 +24,10 @@ trait EventSourcing[F[_], E <: Event, A <: Aggregate[E]] {
   def fetchMetaAggregate(id: AggregateId[E]): F[Option[MetaAggregate[E, A]]]
 }
 
-class ES[F[_], E <: Event, A <: Aggregate[E]](aggregateBuilder: AggregateBuilder[A, E],
+class ES[F[_], E <: Event, A <: Aggregate[E]](builder: MetaAggregateBuilder[E, A],
                                               repository: EventsRepository[F, E],
-                                              views: List[View[F, E]],
-                                              viewsWithAggregates: List[ViewWithAggregate[F, A, E]],
-                                              viewsWithEvents: List[ViewWithEvents[F, E]],
-                                              errorReporter: ErrorReporter[F])
+                                              viewRunner: ViewRunner[F, E, A])
                                              (implicit timer: Timer[F], monad: Sync[F]) extends EventSourcing[F, E, A] {
-  private val viewRunner = ViewRunner(views, viewsWithAggregates, viewsWithEvents, repository, aggregateBuilder, errorReporter)
 
   import cats.implicits._
 
@@ -46,7 +42,6 @@ class ES[F[_], E <: Event, A <: Aggregate[E]](aggregateBuilder: AggregateBuilder
   }
 
   override def fetchMetaAggregate(id: AggregateId[E]): F[Option[MetaAggregate[E, A]]] = {
-    val builder: MetaAggregateBuilder[E, A] = new MetaAggregateBuilder[E, A](aggregateBuilder)
     repository.fetchEvents(id).foldLeftL(builder.empty(id))((agr, event) => builder(agr, event)).map {
       metaAggregate =>
         if (metaAggregate.aggregateVersion.version == 0) {
@@ -56,5 +51,19 @@ class ES[F[_], E <: Event, A <: Aggregate[E]](aggregateBuilder: AggregateBuilder
         }
     }
 
+  }
+}
+
+object ES {
+  def apply[F[_], E <: Event, A <: Aggregate[E]](aggregateBuilder: AggregateBuilder[A, E],
+                                                 repository: EventsRepository[F, E],
+                                                 views: List[View[F, E]],
+                                                 viewsWithAggregates: List[ViewWithAggregate[F, A, E]],
+                                                 viewsWithEvents: List[ViewWithEvents[F, E]],
+                                                 errorReporter: ErrorReporter[F])
+                                                (implicit timer: Timer[F], monad: Sync[F]): ES[F, E, A] = {
+    val viewRunner = ViewRunner(views, viewsWithAggregates, viewsWithEvents, repository, new MetaAggregateBuilder(aggregateBuilder), errorReporter)
+    val metaAggregateBuilder = new MetaAggregateBuilder[E, A](aggregateBuilder)
+    new ES(metaAggregateBuilder, repository, viewRunner)
   }
 }

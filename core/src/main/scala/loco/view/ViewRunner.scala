@@ -3,20 +3,26 @@ package loco.view
 import cats.Monad
 import cats.data.NonEmptyList
 import cats.effect.Sync
-import loco.{AggregateBuilder, ErrorReporter}
-import loco.domain.{Aggregate, AggregateId, Event, MetaEvent}
+import loco.ErrorReporter
+import loco.domain._
 import monix.tail.Iterant
 import cats.implicits._
 import loco.repository.EventsRepository
 import loco.util._
+import monix.tail.Iterant.Last
+
 import scala.language.higherKinds
 
+/*
+TODO: suspend all call to view in F
+TODO: optimize aggregate constructing and stream of events constructing  for views
+ */
 case class ViewRunner[F[_] : Sync, E <: Event, A <: Aggregate[E]](views: List[View[F, E]],
-                                                             viewsWithAggregates: List[ViewWithAggregate[F, A, E]],
-                                                             viewsWithEvents: List[ViewWithEvents[F, E]],
-                                                             repository: EventsRepository[F, E],
-                                                             aggregateBuilder: AggregateBuilder[A, E],
-                                                             errorReporter: ErrorReporter[F]) {
+                                                                  viewsWithAggregates: List[ViewWithAggregate[F, A, E]],
+                                                                  viewsWithEvents: List[ViewWithEvents[F, E]],
+                                                                  repository: EventsRepository[F, E],
+                                                                  aggregateBuilder: MetaAggregateBuilder[E, A],
+                                                                  errorReporter: ErrorReporter[F]) {
 
   def notify(metaEvents: NonEmptyList[MetaEvent[E]]): F[Unit] = {
     val metaEventsList = metaEvents.toList
@@ -54,7 +60,7 @@ case class ViewRunner[F[_] : Sync, E <: Event, A <: Aggregate[E]](views: List[Vi
 
       view <- viewsWithEvents
     } yield {
-      val allEvents: Iterant[F, MetaEvent[E]] = repository.fetchEvents(id, Some(event.version)) // TODO we can optimize for small amount of events
+      val allEvents: Iterant[F, MetaEvent[E]] = repository.fetchEvents(id, Some(event.version))
       view.handle(event, allEvents).recoverWith {
         case ex => errorReporter.error(ex)
       }

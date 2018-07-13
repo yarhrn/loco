@@ -20,7 +20,7 @@ class ExampleSpec extends FlatSpec with Matchers with MockFactory {
     implicit val timer: FakeTimer[IO] = new FakeTimer[IO]()
     val errorReporter: ConsoleErrorReporter[IO] = new ConsoleErrorReporter[IO]()
     val eventRepository = InMemoryRepository[IO, TransactionEvent]()
-    val eventSourcing = new ES[IO, TransactionEvent, Transaction](TransactionBuilder, eventRepository, List(mockedView), List(), List(), errorReporter)
+    val eventSourcing = ES[IO, TransactionEvent, Transaction](TransactionBuilder, eventRepository, List(mockedView), List(), List(), errorReporter)
   }
 
   trait TransactionContext {

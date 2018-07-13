@@ -15,8 +15,8 @@ package object view {
     def handle(event: MetaEvent[E], events: Iterant[F, MetaEvent[E]]): F[Unit]
   }
 
-  trait ViewWithAggregate[F[_], A, E <: Event] {
-    def handle(event: MetaEvent[E], aggregate: A): F[Unit]
+  trait ViewWithAggregate[F[_], A <: Aggregate[E], E <: Event] {
+    def handle(event: MetaEvent[E], aggregate: MetaAggregate[E, A]): F[Unit]
   }
 
 }
