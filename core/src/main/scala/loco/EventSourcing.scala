@@ -26,7 +26,8 @@ trait EventSourcing[F[_], E <: Event, A <: Aggregate[E]] {
 
 class ES[F[_], E <: Event, A <: Aggregate[E]](builder: MetaAggregateBuilder[E, A],
                                               repository: EventsRepository[F, E],
-                                              viewRunner: ViewRunner[F, E, A])
+                                              errorReporter: ErrorReporter[F],
+                                              viewRunner: View[F, E])
                                              (implicit timer: Timer[F], monad: Sync[F]) extends EventSourcing[F, E, A] {
 
   import cats.implicits._
@@ -37,7 +38,7 @@ class ES[F[_], E <: Event, A <: Aggregate[E]](builder: MetaAggregateBuilder[E, A
       instant <- Timer[F].clockRealTime(TimeUnit.MILLISECONDS).map(Instant.ofEpochMilli)
       metaEvents = MetaEvent.fromRawEvents(id, instant, lastKnownVersion, events)
       _ <- repository.saveEvents(metaEvents)
-      _ <- viewRunner.notify(metaEvents)
+      _ <- viewRunner.handle(metaEvents).recover { case ex => errorReporter.error(ex) }
     } yield ()
   }
 
@@ -57,13 +58,10 @@ class ES[F[_], E <: Event, A <: Aggregate[E]](builder: MetaAggregateBuilder[E, A
 object ES {
   def apply[F[_], E <: Event, A <: Aggregate[E]](aggregateBuilder: AggregateBuilder[A, E],
                                                  repository: EventsRepository[F, E],
-                                                 views: List[View[F, E]],
-                                                 viewsWithAggregates: List[ViewWithAggregate[F, A, E]],
-                                                 viewsWithEvents: List[ViewWithEvents[F, E]],
+                                                 view: View[F, E],
                                                  errorReporter: ErrorReporter[F])
                                                 (implicit timer: Timer[F], monad: Sync[F]): ES[F, E, A] = {
-    val viewRunner = ViewRunner(views, viewsWithAggregates, viewsWithEvents, repository, new MetaAggregateBuilder(aggregateBuilder), errorReporter)
     val metaAggregateBuilder = new MetaAggregateBuilder[E, A](aggregateBuilder)
-    new ES(metaAggregateBuilder, repository, viewRunner)
+    new ES(metaAggregateBuilder, repository, errorReporter, view)
   }
 }

@@ -20,7 +20,7 @@ class ExampleSpec extends FlatSpec with Matchers with MockFactory {
     implicit val timer: FakeTimer[IO] = new FakeTimer[IO]()
     val errorReporter: ConsoleErrorReporter[IO] = new ConsoleErrorReporter[IO]()
     val eventRepository = InMemoryRepository[IO, TransactionEvent]()
-    val eventSourcing = ES[IO, TransactionEvent, Transaction](TransactionBuilder, eventRepository, List(mockedView), List(), List(), errorReporter)
+    val eventSourcing = ES[IO, TransactionEvent, Transaction](TransactionBuilder, eventRepository, mockedView, errorReporter)
   }
 
   trait TransactionContext {
@@ -45,8 +45,7 @@ class ExampleSpec extends FlatSpec with Matchers with MockFactory {
     errorReporter shouldNot haveError
     assert(eventSourcing.fetchMetaAggregate(id).map(_.get.aggregate).unsafeRunSync() == aggregateTransactionCreated(id))
 
-    (mockedView.handle _).verify(metaEventTransactionCreated(id, timer.instant))
+    (mockedView.handle _).verify(NonEmptyList.of(metaEventTransactionCreated(id, timer.instant)))
   }
-
 
 }

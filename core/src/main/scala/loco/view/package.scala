@@ -1,22 +1,14 @@
 package loco
 
+import cats.data.NonEmptyList
 import loco.domain._
-import monix.tail.Iterant
 
 import scala.language.higherKinds
 
 package object view {
 
   trait View[F[_], E <: Event] {
-    def handle(event: MetaEvent[E]): F[Unit]
-  }
-
-  trait ViewWithEvents[F[_], E <: Event] {
-    def handle(event: MetaEvent[E], events: Iterant[F, MetaEvent[E]]): F[Unit]
-  }
-
-  trait ViewWithAggregate[F[_], A <: Aggregate[E], E <: Event] {
-    def handle(event: MetaEvent[E], aggregate: MetaAggregate[E, A]): F[Unit]
+    def handle(event: NonEmptyList[MetaEvent[E]]): F[Unit]
   }
 
 }
