@@ -7,7 +7,7 @@ import scala.language.higherKinds
 
 trait EventsRepository[F[_], E <: Event] {
 
-  def fetchEvents(id: AggregateId[E], version: Option[AggregateVersion[E]] = None): Iterant[F, MetaEvent[E]]
+  def fetchEvents(id: AggregateId[E], version: AggregateVersion[E] = AggregateVersion.max): Iterant[F, MetaEvent[E]]
 
   def saveEvents(events: NonEmptyList[MetaEvent[E]]): F[Unit]
 

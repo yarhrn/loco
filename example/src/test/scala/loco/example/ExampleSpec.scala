@@ -9,7 +9,7 @@ import loco.domain.{AggregateId, AggregateVersion, MetaEvent}
 import loco.repository._
 import loco.test.{ConsoleErrorReporter, ConsoleErrorReporterMatcher, FakeTimer}
 import loco.view.View
-import loco.ES
+import loco.DefaultEventSourcing
 import org.scalamock.scalatest.MockFactory
 import org.scalatest._
 
@@ -20,7 +20,7 @@ class ExampleSpec extends FlatSpec with Matchers with MockFactory {
     implicit val timer: FakeTimer[IO] = new FakeTimer[IO]()
     val errorReporter: ConsoleErrorReporter[IO] = new ConsoleErrorReporter[IO]()
     val eventRepository = InMemoryRepository[IO, TransactionEvent]()
-    val eventSourcing = ES[IO, TransactionEvent, Transaction](TransactionBuilder, eventRepository, mockedView, errorReporter)
+    val eventSourcing = DefaultEventSourcing[IO, TransactionEvent, Transaction](TransactionBuilder, eventRepository, mockedView, errorReporter)
   }
 
   trait TransactionContext {

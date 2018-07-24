@@ -24,21 +24,20 @@ trait EventSourcing[F[_], E <: Event, A <: Aggregate[E]] {
   def fetchMetaAggregate(id: AggregateId[E]): F[Option[MetaAggregate[E, A]]]
 }
 
-class ES[F[_], E <: Event, A <: Aggregate[E]](builder: MetaAggregateBuilder[E, A],
-                                              repository: EventsRepository[F, E],
-                                              errorReporter: ErrorReporter[F],
-                                              viewRunner: View[F, E])
-                                             (implicit timer: Timer[F], monad: Sync[F]) extends EventSourcing[F, E, A] {
+class DefaultEventSourcing[F[_], E <: Event, A <: Aggregate[E]](builder: MetaAggregateBuilder[E, A],
+                                                                repository: EventsRepository[F, E],
+                                                                errorReporter: ErrorReporter[F],
+                                                                view: View[F, E])
+                                                               (implicit timer: Timer[F], monad: Sync[F]) extends EventSourcing[F, E, A] {
 
   import cats.implicits._
 
   override def saveEvents(id: AggregateId[E], lastKnownVersion: AggregateVersion[E], events: NonEmptyList[E]): F[Unit] = {
-
     for {
       instant <- Timer[F].clockRealTime(TimeUnit.MILLISECONDS).map(Instant.ofEpochMilli)
       metaEvents = MetaEvent.fromRawEvents(id, instant, lastKnownVersion, events)
       _ <- repository.saveEvents(metaEvents)
-      _ <- viewRunner.handle(metaEvents).recover { case ex => errorReporter.error(ex) }
+      _ <- view.handle(metaEvents).recoverWith { case ex => errorReporter.error(ex) }
     } yield ()
   }
 
@@ -51,17 +50,16 @@ class ES[F[_], E <: Event, A <: Aggregate[E]](builder: MetaAggregateBuilder[E, A
           Some(metaAggregate)
         }
     }
-
   }
 }
 
-object ES {
+object DefaultEventSourcing {
   def apply[F[_], E <: Event, A <: Aggregate[E]](aggregateBuilder: AggregateBuilder[A, E],
                                                  repository: EventsRepository[F, E],
                                                  view: View[F, E],
                                                  errorReporter: ErrorReporter[F])
-                                                (implicit timer: Timer[F], monad: Sync[F]): ES[F, E, A] = {
+                                                (implicit timer: Timer[F], monad: Sync[F]): DefaultEventSourcing[F, E, A] = {
     val metaAggregateBuilder = new MetaAggregateBuilder[E, A](aggregateBuilder)
-    new ES(metaAggregateBuilder, repository, errorReporter, view)
+    new DefaultEventSourcing(metaAggregateBuilder, repository, errorReporter, view)
   }
 }

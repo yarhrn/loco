@@ -8,9 +8,9 @@ import scala.language.higherKinds
 
 case class InMemoryRepository[F[_] : Sync, E <: Event](var storage: Map[AggregateId[E], List[MetaEvent[E]]] = Map.empty[AggregateId[E], List[MetaEvent[E]]]) extends EventsRepository[F, E] {
 
-  override def fetchEvents(id: AggregateId[E], version: Option[AggregateVersion[E]]): Iterant[F, MetaEvent[E]] = {
+  override def fetchEvents(id: AggregateId[E], version: AggregateVersion[E] = AggregateVersion.max): Iterant[F, MetaEvent[E]] = {
     Iterant[F]
-      .liftF(Sync[F].delay(storage(id).take(version.map(_.version).getOrElse(Integer.MAX_VALUE))))
+      .liftF(Sync[F].delay(storage(id).take(version.version)))
       .flatMap(Iterant.fromList(_))
 
   }

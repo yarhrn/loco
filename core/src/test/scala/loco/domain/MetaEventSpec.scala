@@ -1,14 +1,10 @@
 package loco.domain
 
 import java.time.Instant
-
 import cats.data.NonEmptyList
-import org.scalatest.FlatSpec
-import org.scalatest._
-import org.scalatest.Matchers._
+import loco.UnitSpec
 
-
-class MetaEventSpec extends FlatSpec {
+class MetaEventSpec extends UnitSpec {
 
   trait ctx {
 
