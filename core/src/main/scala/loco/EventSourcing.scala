@@ -42,15 +42,18 @@ class DefaultEventSourcing[F[_], E <: Event, A <: Aggregate[E]](builder: MetaAgg
   }
 
   override def fetchMetaAggregate(id: AggregateId[E]): F[Option[MetaAggregate[E, A]]] = {
-    repository.fetchEvents(id).foldLeftL(builder.empty(id))((agr, event) => builder(agr, event)).map {
-      metaAggregate =>
-        if (metaAggregate.aggregateVersion.version == 0) {
+    repository.fetchEvents(id)
+      .compile
+      .fold(builder.empty(id))((agr, event) => builder(agr, event))
+      .map { agr =>
+        if (agr.aggregateVersion.version == 0) {
           None
         } else {
-          Some(metaAggregate)
+          Some(agr)
         }
-    }
+      }
   }
+
 }
 
 object DefaultEventSourcing {

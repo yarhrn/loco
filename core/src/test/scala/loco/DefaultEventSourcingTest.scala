@@ -2,11 +2,10 @@ package loco
 
 import cats.data.NonEmptyList
 import cats.effect.IO
-import loco.domain.AggregateVersion
+import loco.domain.{AggregateVersion, MetaEvent}
 import loco.repository.EventsRepository
 import loco.test.{ConsoleErrorReporter, ConsoleErrorReporterMatcher, FakeTimer}
 import loco.view.View
-import monix.tail.Iterant
 
 class DefaultEventSourcingTest extends UnitSpec {
 
@@ -53,13 +52,13 @@ class DefaultEventSourcingTest extends UnitSpec {
   }
 
   it should "fetch some meta aggregate" in new ctx {
-    (repository.fetchEvents _).expects(id, AggregateVersion.max[IncrementEvent]).returns(Iterant.fromList(metaEvents.toList))
+    (repository.fetchEvents _).expects(id, AggregateVersion.max[IncrementEvent]).returns(fs2.Stream.fromIterator[IO,MetaEvent[IncrementEvent]](metaEvents.toList.iterator))
 
     es.fetchMetaAggregate(id).unsafeRunSync() should be(Some(aggregate))
   }
 
   it should "fetch none aggregate" in new ctx {
-    (repository.fetchEvents _).expects(id, AggregateVersion.max[IncrementEvent]).returns(Iterant.empty)
+    (repository.fetchEvents _).expects(id, AggregateVersion.max[IncrementEvent]).returns(fs2.Stream.empty.covary[IO])
 
     es.fetchMetaAggregate(id).unsafeRunSync() should be(None)
   }

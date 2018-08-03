@@ -58,10 +58,7 @@ lazy val core = (project in file("core")).
     inThisBuild(common),
     name := "core",
     libraryDependencies ++= Seq(
-      //      cats,
-      //      catsEffect,
-      monix,
-      doobie,
+      fs2,
       scalaTest,
       scalaMock
     )

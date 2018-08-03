@@ -38,7 +38,7 @@ class ExampleSpec extends FlatSpec with Matchers with MockFactory {
 
     val id = eventSourcing.saveEvents(NonEmptyList.of(eventTransactionCreated)).unsafeRunSync()
 
-    val metaEvents = eventRepository.fetchEvents(id).toListL.unsafeRunSync()
+    val metaEvents = eventRepository.fetchEvents(id).compile.toList.unsafeRunSync()
     metaEvents should have size 1
     metaEvents.head shouldEqual metaEventTransactionCreated(id, timer.instant)
 
