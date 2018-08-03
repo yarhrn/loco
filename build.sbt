@@ -60,7 +60,9 @@ lazy val core = (project in file("core")).
     libraryDependencies ++= Seq(
       fs2,
       scalaTest,
-      scalaMock
+      scalaMock,
+      "org.tpolecat" %% "doobie-core" % "0.5.3",
+      "mysql" % "mysql-connector-java" % "8.0.12" % Test
     )
   )
 
