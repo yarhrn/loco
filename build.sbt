@@ -32,7 +32,7 @@ lazy val core = (project in file("core")).
       "-Xlint:nullary-override",           // Warn when non-nullary `def f()' overrides nullary `def f'.
       "-Xlint:nullary-unit",               // Warn when nullary methods return Unit.
       "-Xlint:option-implicit",            // Option.apply used implicit view.
-//      "-Xlint:package-object-classes",     // Class or object defined in package object.
+      "-Xlint:package-object-classes",     // Class or object defined in package object.
       "-Xlint:poly-implicit-overload",     // Parameterized overloaded implicit methods are not visible as view bounds.
       "-Xlint:private-shadow",             // A private field (or class parameter) shadows a superclass field.
       "-Xlint:stars-align",                // Pattern sequence wildcard must align with sequence component.
