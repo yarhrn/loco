@@ -7,6 +7,7 @@ import cats.Monad
 import cats.data.NonEmptyList
 import cats.implicits._
 import doobie.implicits._
+import doobie.util.log.LogHandler
 import doobie.util.meta.Meta
 import doobie.util.query.Query
 import doobie.util.transactor.Transactor
@@ -23,15 +24,18 @@ case class DoobieEventsRepository[F[_] : Monad, E <: Event : TypeTag](codec: Cod
 
   import shapeless._
 
+  val selectEvents = s"select * from $eventsTable where aggregate_id = ? and aggregate_version <= ? order by aggregate_version"
+  val insertEvents = s"insert into $eventsTable values (?,?,?,?)"
+
   override def fetchEvents(id: AggregateId[E], version: AggregateVersion[E]) = {
-    Query[String :: Int :: HNil,MetaEvent[E]](s"select * from $eventsTable where aggregate_id = ? and aggregate_version <= ?")
-      .toQuery0(id.id :: version.version :: HNil)
+    Query[AggregateId[E] :: AggregateVersion[E] :: HNil, MetaEvent[E]](selectEvents, logHandler0 = LogHandler(println))
+      .toQuery0(id :: version :: HNil)
       .stream
       .transact(transactor)
   }
 
   override def saveEvents(events: NonEmptyList[MetaEvent[E]]) = {
-    Update[MetaEvent[E]](s"insert into ${eventsTable} values (?,?,?,?)")
+    Update[MetaEvent[E]](insertEvents)
       .updateMany(events)
       .transact(transactor)
       .map(_ => ())
