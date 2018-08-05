@@ -67,7 +67,7 @@ case class DoobieEventsRepository[F[_] : Monad, E <: Event : TypeTag](codec: Cod
       if (nextTo > maxTo) {
         Stop
       } else {
-        Continue(nextTo, (nextTo + batchSize).max(maxTo), maxTo)
+        Continue(nextTo, (nextTo + batchSize).min(maxTo), maxTo)
       }
     }
   }
@@ -75,7 +75,7 @@ case class DoobieEventsRepository[F[_] : Monad, E <: Event : TypeTag](codec: Cod
   case object Stop extends StreamState
 
   object StreamState {
-    def start(maxVersion: Int): StreamState = Continue(1, (1 + batchSize).max(maxVersion), maxVersion)
+    def start(maxVersion: Int): StreamState = Continue(1, (1 + batchSize).min(maxVersion), maxVersion)
   }
 
 }
