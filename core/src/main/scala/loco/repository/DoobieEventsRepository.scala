@@ -24,13 +24,29 @@ case class DoobieEventsRepository[F[_] : Monad, E <: Event : TypeTag](codec: Cod
 
   import shapeless._
 
-  val selectEvents = s"select * from $eventsTable where aggregate_id = ? and aggregate_version <= ? order by aggregate_version"
+  val selectEvents = s"select * from $eventsTable where aggregate_id = ? and aggregate_version >= ? and aggregate_version <= ? order by aggregate_version"
   val insertEvents = s"insert into $eventsTable values (?,?,?,?)"
 
   override def fetchEvents(id: AggregateId[E], version: AggregateVersion[E]) = {
-    Query[AggregateId[E] :: AggregateVersion[E] :: HNil, MetaEvent[E]](selectEvents, logHandler0 = LogHandler(println))
-      .toQuery0(id :: version :: HNil)
-      .stream
+    val rawId = id.id
+
+    fs2.Stream.unfoldEval[F, StreamState, List[MetaEvent[E]]](StreamState.start(version.version)) {
+      case Stop => Monad[F].pure(Option.empty)
+      case state: Continue => fetch(rawId, state.from, state.to).map {
+        events =>
+          if (events.size != 100) {
+            Some((events, Stop))
+          } else {
+            Some((events, state.next))
+          }
+      }
+    }.flatMap(events => fs2.Stream(events : _*))
+  }
+
+  private def fetch(id: String, from: Int, to: Int) = {
+    Query[String :: Int :: Int :: HNil, MetaEvent[E]](selectEvents, logHandler0 = LogHandler(println))
+      .toQuery0(id :: from :: to :: HNil)
+      .to[List]
       .transact(transactor)
   }
 
@@ -40,6 +56,28 @@ case class DoobieEventsRepository[F[_] : Monad, E <: Event : TypeTag](codec: Cod
       .transact(transactor)
       .map(_ => ())
   }
+
+  val batchSize = 100
+
+  sealed trait StreamState
+
+  case class Continue(from: Int, to: Int, maxTo: Int) extends StreamState {
+    def next = {
+      val nextTo = from + 1
+      if (nextTo > maxTo) {
+        Stop
+      } else {
+        Continue(nextTo, (nextTo + batchSize).max(maxTo), maxTo)
+      }
+    }
+  }
+
+  case object Stop extends StreamState
+
+  object StreamState {
+    def start(maxVersion: Int): StreamState = Continue(1, (1 + batchSize).max(maxVersion), maxVersion)
+  }
+
 }
 
 object DoobieEventsRepository {
