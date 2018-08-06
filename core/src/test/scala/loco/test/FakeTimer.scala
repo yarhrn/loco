@@ -16,7 +16,10 @@ case class FakeTimer[F[_] : Sync](var millis: Long = System.currentTimeMillis())
 
   override def shift: F[Unit] = Monad[F].unit
 
-  def tick = millis + 1000
+  def tick() = {
+    millis = millis + 1000
+    this
+  }
 
   def instant = Instant.ofEpochMilli(millis)
 }

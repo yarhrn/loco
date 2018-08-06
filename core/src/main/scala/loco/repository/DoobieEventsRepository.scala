@@ -16,7 +16,11 @@ import loco.domain.{AggregateId, AggregateVersion, Event, MetaEvent}
 
 import scala.reflect.runtime.universe.TypeTag
 
-case class DoobieEventsRepository[F[_] : Monad, E <: Event : TypeTag](codec: Codec[E], transactor: Transactor[F], eventsTable: String)
+case class DoobieEventsRepository[F[_] : Monad, E <: Event : TypeTag](codec: Codec[E],
+                                                                      transactor: Transactor[F],
+                                                                      eventsTable: String,
+                                                                      logHandler: LogHandler = LogHandler.nop,
+                                                                      batchSize: Int = 100)
   extends EventsRepository[F, E] {
   implicit val EMeta: Meta[E] = Meta[String].xmap(codec.decode, codec.encode)
   implicit val AggregateVersionMeta: Meta[AggregateVersion[E]] = Meta[Int].xmap(AggregateVersion(_), _.version)
@@ -34,36 +38,34 @@ case class DoobieEventsRepository[F[_] : Monad, E <: Event : TypeTag](codec: Cod
       case Stop => Monad[F].pure(Option.empty)
       case state: Continue => fetch(rawId, state.from, state.to).map {
         events =>
-          if (events.size != 100) {
+          if (events.size != batchSize + 1) {
             Some((events, Stop))
           } else {
             Some((events, state.next))
           }
       }
-    }.flatMap(events => fs2.Stream(events : _*))
+    }.flatMap(events => fs2.Stream(events: _*))
   }
 
   private def fetch(id: String, from: Int, to: Int) = {
-    Query[String :: Int :: Int :: HNil, MetaEvent[E]](selectEvents, logHandler0 = LogHandler(println))
+    Query[String :: Int :: Int :: HNil, MetaEvent[E]](selectEvents, logHandler0 = logHandler)
       .toQuery0(id :: from :: to :: HNil)
       .to[List]
       .transact(transactor)
   }
 
   override def saveEvents(events: NonEmptyList[MetaEvent[E]]) = {
-    Update[MetaEvent[E]](insertEvents)
+    Update[MetaEvent[E]](insertEvents, logHandler0 = logHandler)
       .updateMany(events)
       .transact(transactor)
       .map(_ => ())
   }
 
-  val batchSize = 100
-
   sealed trait StreamState
 
   case class Continue(from: Int, to: Int, maxTo: Int) extends StreamState {
     def next = {
-      val nextTo = from + 1
+      val nextTo = to + 1
       if (nextTo > maxTo) {
         Stop
       } else {

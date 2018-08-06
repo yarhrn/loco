@@ -24,6 +24,9 @@ trait IncrementFixture {
   val event1 = IncrementEvent()
   val event2 = IncrementEvent()
 
+  def newEvent = IncrementEvent()
+  def metaEventFrom(event: IncrementEvent,createdAt: Instant, version: Int) = MetaEvent[IncrementEvent](id, event, createdAt, AggregateVersion[IncrementEvent](version))
+
   def metaEvent1(createdAt: Instant) = MetaEvent[IncrementEvent](id, event1, createdAt, AggregateVersion[IncrementEvent](1))
 
   def metaEvent2(createdAt: Instant) = MetaEvent[IncrementEvent](id, event2, createdAt, AggregateVersion[IncrementEvent](2))
