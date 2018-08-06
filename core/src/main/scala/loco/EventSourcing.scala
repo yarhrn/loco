@@ -3,12 +3,15 @@ package loco
 import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-import cats.Functor
+
+import cats.{Functor, Monad}
 import cats.data.NonEmptyList
 import cats.effect.{Sync, Timer}
+import loco.command.Command
 import loco.domain._
 import loco.repository.EventsRepository
 import loco.view._
+
 import scala.language.higherKinds
 
 trait EventSourcing[F[_], E <: Event, A <: Aggregate[E]] {
@@ -18,6 +21,8 @@ trait EventSourcing[F[_], E <: Event, A <: Aggregate[E]] {
     val version = AggregateVersion[E](0)
     saveEvents(id, version, events).map(_ => id)
   }
+
+  def executeCommand[R](id: AggregateId[E], command: Command[F, E, A, R]): F[R]
 
   def saveEvents(id: AggregateId[E], lastKnownVersion: AggregateVersion[E], events: NonEmptyList[E]): F[Unit]
 
@@ -45,13 +50,25 @@ class DefaultEventSourcing[F[_], E <: Event, A <: Aggregate[E]](builder: MetaAgg
     repository.fetchEvents(id)
       .compile
       .fold(builder.empty(id))((agr, event) => builder(agr, event))
-      .map { agr =>
-        if (agr.aggregateVersion.version == 0) {
+      .map { aggregate =>
+        if (aggregate.version.version == 0) {
           None
         } else {
-          Some(agr)
+          Some(aggregate)
         }
       }
+  }
+
+  override def executeCommand[R](id: AggregateId[E], command: Command[F, E, A, R]): F[R] = {
+    def save(version: AggregateVersion[E], events: List[E]): F[Unit] = NonEmptyList.fromList(events).map(saveEvents(id, version, _)).getOrElse(Monad[F].unit)
+    for {
+      metaAggregate <- fetchMetaAggregate(id).map(_.getOrElse(builder.empty(id)))
+      commandResult <- Sync[F].suspend(command.events(metaAggregate.aggregate))
+      result <- commandResult match {
+        case Right((events, result)) => save(metaAggregate.version, events) *> Monad[F].pure(result)
+        case Left((exception, events)) => save(metaAggregate.version, events) *> Sync[F].raiseError(exception)
+      }
+    } yield result
   }
 
 }

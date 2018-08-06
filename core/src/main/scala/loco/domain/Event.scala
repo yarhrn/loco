@@ -21,7 +21,7 @@ object AggregateVersion {
 }
 
 
-case class MetaAggregate[E <: Event, A <: Aggregate[E]](aggregate: A, aggregateVersion: AggregateVersion[E])
+case class MetaAggregate[E <: Event, A <: Aggregate[E]](aggregate: A, version: AggregateVersion[E])
 
 case class MetaAggregateBuilder[E <: Event, A <: Aggregate[E]](aggregateBuilder: AggregateBuilder[A, E]) {
   def empty(aggregateId: AggregateId[E]) = MetaAggregate[E, A](aggregateBuilder.empty(aggregateId), AggregateVersion(0))
