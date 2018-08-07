@@ -1,8 +1,6 @@
 package loco.repository
 
-import java.time.Instant
-
-import cats.data.{EitherT, NonEmptyList}
+import cats.data.NonEmptyList
 import cats.effect.IO
 import loco.domain._
 import org.scalatest.{FlatSpec, Matchers}
@@ -17,11 +15,11 @@ class InMemoryRepositoryTest extends FlatSpec with Matchers with TestDomainData 
 
   "InMemoryRepository" should "store events" in new ctx {
 
-    val metaEvent = getMetaEvent(AggregateVersion(1), "Hello world", Users.john)
+    private val metaEvent = getMetaEvent(AggregateVersion(1), "Hello world", Users.john)
 
-    val result = repository.saveEvents(NonEmptyList.one(metaEvent))
+    private val result = repository.saveEvents(NonEmptyList.one(metaEvent))
 
-    val either = result.unsafeRunSync()
+    private val either: Unit = result.unsafeRunSync()
     either.leftSide shouldBe ()
   }
 
