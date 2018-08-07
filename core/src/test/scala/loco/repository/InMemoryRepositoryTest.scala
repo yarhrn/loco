@@ -15,11 +15,11 @@ class InMemoryRepositoryTest extends FlatSpec with Matchers with TestDomainData 
 
   "InMemoryRepository" should "store events" in new ctx {
 
-    private val metaEvent = getMetaEvent(AggregateVersion(1), "Hello world", Users.john)
+    val metaEvent = getMetaEvent(AggregateVersion(1), "Hello world", Users.john)
 
-    private val result = repository.saveEvents(NonEmptyList.one(metaEvent))
+    val result = repository.saveEvents(NonEmptyList.one(metaEvent))
 
-    private val either: Unit = result.unsafeRunSync()
+    val either: Unit = result.unsafeRunSync()
     either.leftSide shouldBe ()
   }
 
