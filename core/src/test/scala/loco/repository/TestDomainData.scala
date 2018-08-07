@@ -6,13 +6,11 @@ import java.util.UUID
 import loco.domain._
 trait TestDomainData {
 
-  object Authorities extends Enumeration {
-    sealed trait Role
-    case class Author() extends Role
-    case class Admin() extends Role
-  }
+  sealed trait Role
+  case object Author extends Role
+  case object Admin extends Role
 
-  case class User(login:String, role:Authorities.Role)
+  case class User(login:String, role:Role)
   case class ForumPost(content:String, created:Instant, author:User, version: AggregateVersion[ForumPostEvent])
   type ForumPostId = AggregateId[ForumPostEvent]
 
@@ -33,7 +31,7 @@ trait TestDomainData {
   }
 
   object Users {
-    val john= User("john@loco.io", Authorities.Author())
-    val smith = User("smith@loco.io", Authorities.Admin())
+    val john= User("john@loco.io", Author)
+    val smith = User("smith@loco.io", Admin)
   }
 }
