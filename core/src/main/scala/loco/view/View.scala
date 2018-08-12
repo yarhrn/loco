@@ -30,8 +30,8 @@ trait EventViewPF[F[_], E <: Event] {
   val handle: PartialFunction[E, F[Unit]]
 }
 
-trait MetaEventViewPF[F[_], E <: Event] {
-  val handle: PartialFunction[MetaEvent[E], F[Unit]]
+trait MetaEventView[F[_], E <: Event] {
+  def handle(metaEvent: MetaEvent[E]): F[Unit]
 }
 
 object View {
@@ -44,11 +44,11 @@ object View {
     }
   }
 
-  def lift[F[_], E <: Event](pf: MetaEventViewPF[F, E], errorReporter: ErrorReporter[F])
+  def lift[F[_], E <: Event](pf: MetaEventView[F, E], errorReporter: ErrorReporter[F])
                             (implicit M: MonadError[F, Throwable]) = new View[F, E] {
     override def handle(events: NonEmptyList[MetaEvent[E]]) = {
       events.toList.map { event =>
-        pf.handle.applyOrElse(event, (_: MetaEvent[E]) => Monad[F].unit).recoverWith { case ex => errorReporter.error(ex) }
+        pf.handle(event).recoverWith { case ex => errorReporter.error(ex) }
       }.sequence.unitify
     }
   }
