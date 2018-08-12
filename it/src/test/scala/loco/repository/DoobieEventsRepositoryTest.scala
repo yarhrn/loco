@@ -5,10 +5,15 @@ import cats.effect.IO
 import doobie.util.transactor.Transactor
 import loco.EmbeddedDBEnv._
 import loco.domain.{AggregateVersion, MetaEvent}
+import loco.repository.sql.{Codec, DoobieEventsRepository, EventsTableConfiguration}
 import loco.test.FakeTimer
-import loco.{IncrementFixture, RecordingLogHandler, UnitSpec}
+import loco.{ITTest, IncrementFixture, RecordingLogHandler, UnitSpec}
 
-class DoobieEventsRepositoryTest extends UnitSpec {
+class DoobieEventsRepositoryTest extends UnitSpec with ITTest {
+
+  val configuration = EventsTableConfiguration.base("increment")
+
+  def schemaScript = configuration.setup
 
   trait ctx extends IncrementFixture {
     val (events, logHandler) = RecordingLogHandler.logHandler
@@ -23,7 +28,7 @@ class DoobieEventsRepositoryTest extends UnitSpec {
 
       override def decode(e: String) = IncrementEvent(e)
     }
-    val repository = DoobieEventsRepository[IO, IncrementEvent](codec, transactor, "increment_events", logHandler, batchSize = 1)
+    val repository = DoobieEventsRepository[IO, IncrementEvent](codec, transactor, logHandler, batchSize = 1, tableConfiguration = configuration)
     val timer = FakeTimer[IO]()
   }
 

@@ -12,12 +12,11 @@ trait Aggregate[E <: Event]
 
 case class AggregateId[E <: Event](id: String)
 
-case class AggregateVersion[E <: Event](version: Int)
+case class AggregateVersion[+E <: Event](version: Int)
 
 object AggregateVersion {
-  // todo optimise
-  def none[E <: Event] = AggregateVersion[E](0)
-  def max[E <: Event] = AggregateVersion[E](Int.MaxValue)
+  val none = AggregateVersion[Nothing](0)
+  val max = AggregateVersion[Nothing](Int.MaxValue)
 }
 
 
@@ -34,7 +33,7 @@ case class MetaAggregateBuilder[E <: Event, A <: Aggregate[E]](aggregateBuilder:
 
 //todo add event name and event metadata
 case class MetaEvent[E <: Event](aggregateId: AggregateId[E],
-                                 domainEvent: E,
+                                 event: E,
                                  createdAt: Instant,
                                  version: AggregateVersion[E])
 

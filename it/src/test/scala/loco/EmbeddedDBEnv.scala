@@ -8,19 +8,10 @@ object EmbeddedDBEnv {
 
   val schema = "loco"
 
-  val mysqld = anEmbeddedMysql(v5_7_latest)
-    .addSchema(schema, fromString(
-      """
-        create table increment_events
-        (
-        	aggregate_id varchar(250) not null,
-        	events text null,
-        	created_at datetime(3) null,
-        	aggregate_version int not null,
-        	primary key (aggregate_id, aggregate_version)
-        )
-      """)).start()
 
+
+  val mysqld = anEmbeddedMysql(v5_7_latest)
+    .addSchema(schema).start()
 
   val port = mysqld.getConfig.getPort
   val username = mysqld.getConfig.getUsername

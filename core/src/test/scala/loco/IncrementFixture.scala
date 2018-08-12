@@ -17,7 +17,7 @@ trait IncrementFixture {
     override def empty(id: AggregateId[IncrementEvent]) = Increment(id, 0, List.empty)
 
     override def apply(aggregate: Increment, metaEvent: MetaEvent[IncrementEvent]) = {
-      aggregate.copy(count = aggregate.count + 1, events = aggregate.events :+ metaEvent.domainEvent)
+      aggregate.copy(count = aggregate.count + 1, events = aggregate.events :+ metaEvent.event)
     }
   }
 

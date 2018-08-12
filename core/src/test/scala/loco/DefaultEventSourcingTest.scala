@@ -52,13 +52,13 @@ class DefaultEventSourcingTest extends UnitSpec {
   }
 
   it should "fetch some meta aggregate" in new ctx {
-    (repository.fetchEvents _).expects(id, AggregateVersion.max[IncrementEvent]).returns(fs2.Stream.fromIterator[IO,MetaEvent[IncrementEvent]](metaEvents.toList.iterator))
+    (repository.fetchEvents _).expects(id, AggregateVersion.max).returns(fs2.Stream.fromIterator[IO,MetaEvent[IncrementEvent]](metaEvents.toList.iterator))
 
     es.fetchMetaAggregate(id).unsafeRunSync() should be(Some(aggregate))
   }
 
   it should "fetch none aggregate" in new ctx {
-    (repository.fetchEvents _).expects(id, AggregateVersion.max[IncrementEvent]).returns(fs2.Stream.empty.covary[IO])
+    (repository.fetchEvents _).expects(id, AggregateVersion.max).returns(fs2.Stream.empty.covary[IO])
 
     es.fetchMetaAggregate(id).unsafeRunSync() should be(None)
   }

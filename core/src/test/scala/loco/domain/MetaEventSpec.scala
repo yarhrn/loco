@@ -37,7 +37,7 @@ class MetaEventSpec extends UnitSpec {
     metaEvents.head.aggregateId shouldBe id
     metaEvents.head.version shouldBe AggregateVersion[DumbEvent](1)
     metaEvents.head.createdAt shouldBe instant
-    metaEvents.head.domainEvent shouldBe event.head
+    metaEvents.head.event shouldBe event.head
   }
 
   it should "proper calculate version of list of events from version 0" in new ctx {

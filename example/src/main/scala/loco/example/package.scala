@@ -36,7 +36,7 @@ package object example {
     override def empty(id: AggregateId[TransactionEvent]): Transaction = Transaction(id, null, null, null, null, None, None)
 
     override def apply(aggregate: Transaction, metaEvent: MetaEvent[TransactionEvent]): Transaction = {
-      metaEvent.domainEvent match {
+      metaEvent.event match {
         case TransactionCreated(amount, currency, providerAccountId) => aggregate.copy(amount = amount, currency = currency, providerAccountId = providerAccountId, status = TransactionStatus.New)
         case TransactionProcessed(providerTransactionId) => aggregate.copy(providerTransactionId = Some(providerTransactionId), status = TransactionStatus.Processed)
         case TransactionFailed(errorReason) => aggregate.copy(errorReason = Some(errorReason), status = TransactionStatus.Failed)
