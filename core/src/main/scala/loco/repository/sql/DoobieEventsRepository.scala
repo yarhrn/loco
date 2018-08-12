@@ -8,7 +8,7 @@ import cats.data.NonEmptyList
 import cats.implicits._
 import doobie.implicits._
 import doobie.util.log.LogHandler
-import doobie.util.meta.Meta
+import doobie.util.Meta
 import doobie.util.query.Query
 import doobie.util.transactor.Transactor
 import doobie.util.update.Update
@@ -24,9 +24,9 @@ case class DoobieEventsRepository[F[_] : Monad, E <: Event : TypeTag](codec: Cod
                                                                       tableConfiguration: EventsTableConfiguration)
   extends EventsRepository[F, E] {
 
-  implicit val EMeta: Meta[E] = Meta[String].xmap(codec.decode, codec.encode)
-  implicit val AggregateVersionMeta: Meta[AggregateVersion[E]] = Meta[Int].xmap(AggregateVersion(_), _.version)
-  implicit val AggregateIdMeta: Meta[AggregateId[E]] = Meta[String].xmap(AggregateId(_), _.id)
+  implicit val EMeta: Meta[E] = Meta[String].timap(codec.decode)(codec.encode)
+  implicit val AggregateVersionMeta: Meta[AggregateVersion[E]] = Meta[Int].timap(AggregateVersion[E])( _.version)
+  implicit val AggregateIdMeta: Meta[AggregateId[E]] = Meta[String].timap(AggregateId[E])(_.id)
 
   import shapeless._
   import tableConfiguration._
@@ -94,6 +94,6 @@ case class DoobieEventsRepository[F[_] : Monad, E <: Event : TypeTag](codec: Cod
 }
 
 object DoobieEventsRepository {
-  implicit val InstantMeta: Meta[Instant] = Meta[Timestamp].xmap(_.toInstant, Timestamp.from)
+  implicit val InstantMeta: Meta[Instant] = Meta[Timestamp].timap(_.toInstant)(Timestamp.from)
 }
 

@@ -18,7 +18,6 @@ lazy val core = (project in file("core"))
       "-language:higherKinds", // Allow higher-kinded types
       "-language:implicitConversions", // Allow definition of implicit functions called views
       "-unchecked", // Enable additional warnings where generated code depends on assumptions.
-      "-Xcheckinit", // Wrap field accessors to throw an exception on uninitialized access.
       "-Xfatal-warnings", // Fail the compilation if there are any warnings.
       "-Xfuture", // Turn on future language features.
       "-Xlint:adapted-args", // Warn if an argument list is modified to match the receiver.
@@ -58,11 +57,9 @@ lazy val core = (project in file("core"))
     inThisBuild(common),
     name := "core",
     libraryDependencies ++= Seq(
-      fs2,
       scalaTest,
       scalaMock,
-      "org.tpolecat" %% "doobie-core" % "0.5.3",
-      "mysql" % "mysql-connector-java" % "8.0.12" % Test
+      doobie
     )
   )
 
@@ -77,5 +74,5 @@ lazy val it = (project in file("it")).
   settings(
     inThisBuild(common),
     name := "it",
-    libraryDependencies ++= Seq(scalaTest, scalaMock, "com.wix" % "wix-embedded-mysql" % "4.1.2" % Test)
+    libraryDependencies ++= Seq(scalaTest, scalaMock, mysql, embeddedMysql)
   ).dependsOn(core % "test->test;compile->compile")
