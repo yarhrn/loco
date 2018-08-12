@@ -4,7 +4,7 @@ import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-import cats.{Functor, Monad}
+import cats.Monad
 import cats.data.NonEmptyList
 import cats.effect.{Sync, Timer}
 import loco.command.Command
@@ -15,16 +15,11 @@ import loco.view._
 import scala.language.higherKinds
 
 trait EventSourcing[F[_], E <: Event, A <: Aggregate[E]] {
-  def saveEvents(events: NonEmptyList[E])(implicit f: Functor[F]): F[AggregateId[E]] = {
-    import cats.implicits._
-    val id = AggregateId[E](UUID.randomUUID().toString)
-    val version = AggregateVersion[E](0)
-    saveEvents(id, version, events).map(_ => id)
-  }
-
-  def executeCommand[R](id: AggregateId[E], command: Command[F, E, A, R]): F[R]
+  def saveEvents(events: NonEmptyList[E]): F[AggregateId[E]]
 
   def saveEvents(id: AggregateId[E], lastKnownVersion: AggregateVersion[E], events: NonEmptyList[E]): F[Unit]
+
+  def executeCommand[R](id: AggregateId[E], command: Command[F, E, A, R]): F[R]
 
   def fetchMetaAggregate(id: AggregateId[E]): F[Option[MetaAggregate[E, A]]]
 }
@@ -36,6 +31,14 @@ class DefaultEventSourcing[F[_], E <: Event, A <: Aggregate[E]](builder: MetaAgg
                                                                (implicit timer: Timer[F], monad: Sync[F]) extends EventSourcing[F, E, A] {
 
   import cats.implicits._
+
+  def saveEvents(events: NonEmptyList[E]): F[AggregateId[E]] = {
+    import cats.implicits._
+    val id = AggregateId[E](UUID.randomUUID().toString)
+    val version = AggregateVersion[E](0)
+    saveEvents(id, version, events).map(_ => id)
+  }
+
 
   override def saveEvents(id: AggregateId[E], lastKnownVersion: AggregateVersion[E], events: NonEmptyList[E]): F[Unit] = {
     for {
