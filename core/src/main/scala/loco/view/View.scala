@@ -1,14 +1,12 @@
 package loco.view
 
-import cats.{Monad, MonadError}
 import cats.data.NonEmptyList
+import cats.implicits._
+import cats.{Monad, MonadError}
 import loco.ErrorReporter
 import loco.domain._
-import cats.implicits._
-import javax.swing.text.CompositeView
-
-import scala.language.higherKinds
 import loco.util._
+import scala.language.higherKinds
 
 trait View[F[_], E <: Event] {
   def handle(events: NonEmptyList[MetaEvent[E]]): F[Unit]
