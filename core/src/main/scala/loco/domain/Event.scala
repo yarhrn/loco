@@ -12,7 +12,9 @@ trait Aggregate[E <: Event]
 
 case class AggregateId[E <: Event](id: String)
 
-case class AggregateVersion[+E <: Event](version: Int)
+case class AggregateVersion[+E <: Event](version: Int){
+  def decrement = AggregateVersion(version - 1)
+}
 
 object AggregateVersion {
   val none = AggregateVersion[Nothing](0)
