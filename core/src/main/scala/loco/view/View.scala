@@ -7,7 +7,6 @@ import cats.{Monad, MonadError}
 import loco.ErrorReporter
 import loco.domain._
 import loco.repository.EventsRepository
-import loco.util._
 import scala.language.higherKinds
 
 trait View[F[_], E <: Event] {
@@ -36,7 +35,7 @@ class CompositeView[F[_], E <: Event](views: List[View[F, E]], errorReporter: Er
       view
         .handle(events)
         .recoverWith { case ex => errorReporter.error(ex) }
-    }.sequence.unitify
+    }.sequence.void
   }
 
 }
@@ -47,7 +46,7 @@ object View {
     override def handle(events: NonEmptyList[MetaEvent[E]]) = {
       events.toList.map { event =>
         eventView.handle.applyOrElse(event.event, (_: E) => Monad[F].unit).recoverWith { case ex => errorReporter.error(ex) }
-      }.sequence.unitify
+      }.sequence.void
     }
   }
 
@@ -56,7 +55,7 @@ object View {
     override def handle(events: NonEmptyList[MetaEvent[E]]) = {
       events.toList.map { event =>
         metaEventView.handle(event).recoverWith { case ex => errorReporter.error(ex) }
-      }.sequence.unitify
+      }.sequence.void
     }
   }
 
@@ -65,7 +64,7 @@ object View {
                                                               errorReporter: ErrorReporter[F])
                                                              (implicit ME: MonadError[F, Throwable]) = new MetaEventViewWithAggregate[F, E, A] {
     override def handle(metaEvent: MetaEvent[E], metaAggregate: MetaAggregate[E, A]) = {
-      views.traverse(view => view.handle(metaEvent, metaAggregate).recoverWith { case ex => errorReporter.error(ex) }).unitify
+      views.traverse(view => view.handle(metaEvent, metaAggregate).recoverWith { case ex => errorReporter.error(ex) }).void
     }
   }
 
@@ -87,7 +86,7 @@ object View {
             aggregate <- metaAggregateF
             _ <- view.handle(metaEvent, aggregate).recoverWith { case ex => errorReporter.error(ex) }
           } yield metaAggregateBuilder.apply(aggregate, metaEvent)
-      }.unitify
+      }.void
 
     }
   }
