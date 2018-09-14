@@ -3,7 +3,7 @@ import Dependencies._
 val common = List(
   organization := "loco",
   scalaVersion := "2.12.6",
-  version := "0.1.0-SNAPSHOT"
+  version := "0.0.1-SNAPSHOT"
 )
 
 lazy val core = (project in file("core"))
@@ -55,15 +55,32 @@ lazy val core = (project in file("core"))
       "-Ywarn-value-discard" // Warn when non-Unit expression results are unused.
     ),
     inThisBuild(common),
-    name := "core",
+    name := "loco-core",
     libraryDependencies ++= Seq(
       scalaTest,
       scalaMock,
       doobie,
       jsoniter,
       jsoniterMacros
+    ),
+    pgpReadOnly := false,
+    organization := "com.yarhrn",
+    homepage := Some(url("https://github.com/yarhrn/loco")),
+    scmInfo := Some(ScmInfo(url("https://github.com/yarhrn/loco"), "git@github.com:yarhrn/loco.git")),
+    developers := List(Developer("Yaroslav Hryniuk",
+      "Yaroslav Hryniuk",
+      "yaroslavh.hryniuk@gmail.com",
+      url("https://github.com/yarhrn"))),
+    licenses += ("MIT", url("https://github.com/yarhrn/loco/blob/master/LICENSE")),
+    publishMavenStyle := true,
+    publishTo := Some(
+      if (isSnapshot.value)
+        Opts.resolver.sonatypeSnapshots
+      else
+        Opts.resolver.sonatypeStaging
     )
   )
+
 
 lazy val example = (project in file("example")).
   settings(
