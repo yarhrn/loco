@@ -8,4 +8,8 @@ object Dependencies {
   lazy val embeddedMysql = "com.wix" % "wix-embedded-mysql" % "4.1.2" % Test
 
   lazy val doobie = "org.tpolecat" %% "doobie-core" % "0.6.0-M2"
+
+  lazy val jsoniter = "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-core" % "0.29.20"
+  lazy val jsoniterMacros = "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % "0.29.20"
+
 }

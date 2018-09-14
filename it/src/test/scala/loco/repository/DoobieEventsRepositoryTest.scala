@@ -4,6 +4,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.util.transactor.Transactor
 import loco.EmbeddedDBEnv._
+import loco.IncrementFixture._
 import loco.domain.{AggregateVersion, MetaEvent}
 import loco.repository.sql.{Codec, DoobieEventsRepository, EventsTableConfiguration}
 import loco.test.FakeTimer
@@ -23,11 +24,8 @@ class DoobieEventsRepositoryTest extends UnitSpec with ITTest {
       username,
       password)
 
-    val codec = new Codec[IncrementEvent] {
-      override def encode(e: IncrementEvent) = e.id
 
-      override def decode(e: String) = IncrementEvent(e)
-    }
+    val codec = Codec.fromJsonCodec(IncrementFixture.jsonValueCodec)
     val repository = DoobieEventsRepository[IO, IncrementEvent](codec, transactor, logHandler, batchSize = 1, tableConfiguration = configuration)
     val timer = FakeTimer[IO]()
   }

@@ -59,7 +59,9 @@ lazy val core = (project in file("core"))
     libraryDependencies ++= Seq(
       scalaTest,
       scalaMock,
-      doobie
+      doobie,
+      jsoniter,
+      jsoniterMacros
     )
   )
 

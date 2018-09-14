@@ -2,6 +2,7 @@ package loco.domain
 
 import java.time.Instant
 import loco.{IncrementFixture, UnitSpec}
+import loco.IncrementFixture._
 
 class MetaAggregateBuilderSpec extends UnitSpec {
 

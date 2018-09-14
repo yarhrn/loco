@@ -6,6 +6,7 @@ import loco.domain.{AggregateVersion, MetaEvent}
 import loco.repository.EventsRepository
 import loco.test.{ConsoleErrorReporter, ConsoleErrorReporterMatcher, FakeTimer}
 import loco.view.View
+import loco.IncrementFixture._
 
 class DefaultEventSourcingTest extends UnitSpec {
 
