@@ -3,7 +3,7 @@ import Dependencies._
 val common = List(
   organization := "loco",
   scalaVersion := "2.12.6",
-  version := "0.0.1-SNAPSHOT"
+  version := "0.0.1"
 )
 
 lazy val core = (project in file("core"))
@@ -78,9 +78,11 @@ lazy val core = (project in file("core"))
         Opts.resolver.sonatypeSnapshots
       else
         Opts.resolver.sonatypeStaging
-    )
+    ),
+    publishConfiguration := publishConfiguration.value.withOverwrite(true),
   )
 
+releasePublishArtifactsAction := PgpKeys.publishSigned.value
 
 lazy val example = (project in file("example")).
   settings(
