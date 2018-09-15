@@ -12,8 +12,8 @@ trait Aggregate[E <: Event]
 
 case class AggregateId[E <: Event](id: String)
 
-case class AggregateVersion[+E <: Event](version: Int){
-  def decrement = AggregateVersion(version - 1)
+case class AggregateVersion[+E <: Event](version: Int) {
+  private[loco] def decrement = AggregateVersion(version - 1)
 }
 
 object AggregateVersion {

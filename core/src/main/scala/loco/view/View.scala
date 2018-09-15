@@ -8,11 +8,11 @@ import loco.ErrorReporter
 import loco.domain._
 import loco.repository.EventsRepository
 import scala.language.higherKinds
+import loco.ErrorReporter._
 
 trait View[F[_], E <: Event] {
   def handle(events: NonEmptyList[MetaEvent[E]]): F[Unit]
 }
-
 
 
 trait EventViewPF[F[_], E <: Event] {
@@ -41,53 +41,49 @@ class CompositeView[F[_], E <: Event](views: List[View[F, E]], errorReporter: Er
 }
 
 object View {
-  private[loco] def wrap[F[_], E <: Event](eventView: EventViewPF[F, E], errorReporter: ErrorReporter[F])
-                                          (implicit M: MonadError[F, Throwable]) = new View[F, E] {
+  private[loco] def wrap[F[_], E <: Event](eventView: EventViewPF[F, E])
+                                          (implicit M: MonadError[F, Throwable], ER: ErrorReporter[F]) = new View[F, E] {
     override def handle(events: NonEmptyList[MetaEvent[E]]) = {
       events.toList.map { event =>
-        eventView.handle.applyOrElse(event.event, (_: E) => Monad[F].unit).recoverWith { case ex => errorReporter.error(ex) }
+        eventView.handle.applyOrElse(event.event, (_: E) => Monad[F].unit).reportError
       }.sequence.void
     }
   }
 
-  private[loco] def wrap[F[_], E <: Event](metaEventView: MetaEventView[F, E], errorReporter: ErrorReporter[F])
-                                          (implicit M: MonadError[F, Throwable]) = new View[F, E] {
+  private[loco] def wrap[F[_], E <: Event](metaEventView: MetaEventView[F, E])
+                                          (implicit M: MonadError[F, Throwable], ER: ErrorReporter[F]) = new View[F, E] {
     override def handle(events: NonEmptyList[MetaEvent[E]]) = {
       events.toList.map { event =>
-        metaEventView.handle(event).recoverWith { case ex => errorReporter.error(ex) }
+        metaEventView.handle(event).reportError
       }.sequence.void
     }
   }
 
 
-  private[loco] def wrap[F[_], E <: Event, A <: Aggregate[E]](views: List[MetaEventViewWithAggregate[F, E, A]],
-                                                              errorReporter: ErrorReporter[F])
-                                                             (implicit ME: MonadError[F, Throwable]) = new MetaEventViewWithAggregate[F, E, A] {
+  private[loco] def wrap[F[_], E <: Event, A <: Aggregate[E]](views: List[MetaEventViewWithAggregate[F, E, A]])
+                                                             (implicit ME: MonadError[F, Throwable], ER: ErrorReporter[F]) = new MetaEventViewWithAggregate[F, E, A] {
     override def handle(metaEvent: MetaEvent[E], metaAggregate: MetaAggregate[E, A]) = {
-      views.traverse(view => view.handle(metaEvent, metaAggregate).recoverWith { case ex => errorReporter.error(ex) }).void
+      views.traverse(view => view.handle(metaEvent, metaAggregate).reportError).void
     }
   }
 
 
   private[loco] def wrap[F[_], E <: Event, A <: Aggregate[E]](view: MetaEventViewWithAggregate[F, E, A],
                                                               metaAggregateBuilder: MetaAggregateBuilder[E, A],
-                                                              eventsRepository: EventsRepository[F, E],
-                                                              errorReporter: ErrorReporter[F])
-                                                             (implicit S: Sync[F]) = new View[F, E] {
+                                                              eventsRepository: EventsRepository[F, E])
+                                                             (implicit S: Sync[F], ER: ErrorReporter[F]) = new View[F, E] {
 
     override def handle(events: NonEmptyList[MetaEvent[E]]) = {
       val id = events.head.aggregateId
 
-      val empty = eventsRepository.fetchEvents(id, events.head.version.decrement).compile.fold(metaAggregateBuilder.empty(id))(metaAggregateBuilder.apply)
-
-      events.foldLeft(empty) {
-        (metaAggregateF, metaEvent) =>
-          for {
-            aggregate <- metaAggregateF
-            _ <- view.handle(metaEvent, aggregate).recoverWith { case ex => errorReporter.error(ex) }
-          } yield metaAggregateBuilder.apply(aggregate, metaEvent)
-      }.void
-
+      for {
+        initialMetaAggregate <- eventsRepository.fetchEvents(id, events.head.version.decrement).compile.fold(metaAggregateBuilder.empty(id))(metaAggregateBuilder.apply)
+        _ <- events.foldLeftM(initialMetaAggregate) { (aggregate, metaEvent) =>
+          view.handle(metaEvent, aggregate).reportError *> S.pure(metaAggregateBuilder.apply(aggregate, metaEvent))
+        }
+      } yield {
+        ()
+      }
     }
   }
 }
