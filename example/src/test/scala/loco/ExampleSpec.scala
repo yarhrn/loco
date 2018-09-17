@@ -1,4 +1,4 @@
-package loco.example
+package loco
 
 import java.time.Instant
 import java.util.Currency
@@ -9,7 +9,6 @@ import loco.domain.{AggregateId, AggregateVersion, MetaEvent}
 import loco.repository._
 import loco.test.{ConsoleErrorReporter, ConsoleErrorReporterMatcher, FakeTimer}
 import loco.view.View
-import loco.DefaultEventSourcing
 import org.scalamock.scalatest.MockFactory
 import org.scalatest._
 

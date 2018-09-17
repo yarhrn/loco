@@ -10,7 +10,7 @@ import loco.command.Command
 import loco.domain._
 import loco.repository.EventsRepository
 import loco.view._
-
+import loco.ErrorReporter._
 import scala.language.higherKinds
 
 /**
@@ -41,9 +41,8 @@ trait EventSourcing[F[_], E <: Event, A <: Aggregate[E]] {
 
 class DefaultEventSourcing[F[_], E <: Event, A <: Aggregate[E]](builder: MetaAggregateBuilder[E, A],
                                                                 repository: EventsRepository[F, E],
-                                                                errorReporter: ErrorReporter[F],
                                                                 view: View[F, E])
-                                                               (implicit T: Timer[F], S: Sync[F]) extends EventSourcing[F, E, A] {
+                                                               (implicit T: Timer[F], S: Sync[F], ER: ErrorReporter[F]) extends EventSourcing[F, E, A] {
 
   import cats.implicits._
 
@@ -52,7 +51,7 @@ class DefaultEventSourcing[F[_], E <: Event, A <: Aggregate[E]](builder: MetaAgg
       instant <- T.clockRealTime(TimeUnit.MILLISECONDS).map(Instant.ofEpochMilli)
       metaEvents = MetaEvent.fromRawEvents(id, instant, lastKnownVersion, events)
       _ <- repository.saveEvents(metaEvents)
-      _ <- view.handle(metaEvents).recoverWith { case ex => errorReporter.error(ex) }
+      _ <- view.handle(metaEvents).reportError
     } yield id
   }
 
@@ -88,9 +87,9 @@ object DefaultEventSourcing {
   def apply[F[_], E <: Event, A <: Aggregate[E]](aggregateBuilder: AggregateBuilder[A, E],
                                                  repository: EventsRepository[F, E],
                                                  view: View[F, E],
-                                                 errorReporter: ErrorReporter[F])
-                                                (implicit timer: Timer[F], monad: Sync[F]): DefaultEventSourcing[F, E, A] = {
+                                                 ER: ErrorReporter[F])
+                                                (implicit T: Timer[F], S: Sync[F]): DefaultEventSourcing[F, E, A] = {
     val metaAggregateBuilder = new MetaAggregateBuilder[E, A](aggregateBuilder)
-    new DefaultEventSourcing(metaAggregateBuilder, repository, errorReporter, view)
+    new DefaultEventSourcing(metaAggregateBuilder, repository, view)(T, S, ER)
   }
 }

@@ -3,12 +3,13 @@ package loco.view
 import cats.data.NonEmptyList
 import cats.effect.Sync
 import cats.implicits._
-import cats.{Monad, MonadError}
+import cats.{Applicative, Monad, MonadError}
 import loco.ErrorReporter
+import loco.ErrorReporter._
 import loco.domain._
 import loco.repository.EventsRepository
+
 import scala.language.higherKinds
-import loco.ErrorReporter._
 
 trait View[F[_], E <: Event] {
   def handle(events: NonEmptyList[MetaEvent[E]]): F[Unit]
@@ -27,15 +28,11 @@ trait MetaEventViewWithAggregate[F[_], E <: Event, A <: Aggregate[E]] {
   def handle(metaEvent: MetaEvent[E], metaAggregate: MetaAggregate[E, A]): F[Unit]
 }
 
-class CompositeView[F[_], E <: Event](views: List[View[F, E]], errorReporter: ErrorReporter[F])
-                                     (implicit ME: MonadError[F, Throwable]) extends View[F, E] {
+class CompositeView[F[_], E <: Event](views: List[View[F, E]])
+                                     (implicit ME: MonadError[F, Throwable], ER: ErrorReporter[F]) extends View[F, E] {
 
   override def handle(events: NonEmptyList[MetaEvent[E]]) = {
-    views.map { view =>
-      view
-        .handle(events)
-        .recoverWith { case ex => errorReporter.error(ex) }
-    }.sequence.void
+    views.map(_.handle(events).reportError).sequence.void
   }
 
 }
@@ -86,4 +83,6 @@ object View {
       }
     }
   }
+
+  def empty[F[_] : Applicative, E <: Event]: View[F, E] = (events: NonEmptyList[MetaEvent[E]]) => ().pure[F]
 }

@@ -14,7 +14,7 @@ trait Aggregate[E <: Event]
 case class AggregateId[E <: Event](id: String)
 
 object AggregateId {
-  def random[E <: Event]: AggregateId[E] = AggregateId[E](UUID.randomUUID().toString)
+  def random[E <: Event]: AggregateId[E] = AggregateId(UUID.randomUUID().toString)
 }
 
 case class AggregateVersion[+E <: Event](version: Int) {

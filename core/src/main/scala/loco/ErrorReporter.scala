@@ -2,16 +2,10 @@ package loco
 
 import cats.MonadError
 import cats.effect.Sync
+
 import scala.language.higherKinds
 
-/**
-  * Reports exceptions occurred, while asynchronous actions execution(view handling, etc.)
-  */
 trait ErrorReporter[F[_]] {
-  /**
-    * Reports given `throwable`.
-    * Should never end with error in scope of F.
-    */
   def error(throwable: Throwable): F[Unit]
 }
 
@@ -28,6 +22,6 @@ object ErrorReporter {
     }
   }
 
-  def consoleErrorReporter[F[_]](implicit S: Sync[F]): ErrorReporter[F] = (e: Throwable) => S.delay(e.printStackTrace())
+  def consoleErrorReporter[F[_] : Sync]: ErrorReporter[F] = (e: Throwable) => Sync[F].delay(e.printStackTrace())
 
 }
