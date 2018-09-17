@@ -1,6 +1,7 @@
 package loco.domain
 
 import java.time.Instant
+import java.util.UUID
 
 import cats.data.NonEmptyList
 import loco.AggregateBuilder
@@ -11,6 +12,10 @@ trait Event
 trait Aggregate[E <: Event]
 
 case class AggregateId[E <: Event](id: String)
+
+object AggregateId {
+  def random[E <: Event]: AggregateId[E] = AggregateId[E](UUID.randomUUID().toString)
+}
 
 case class AggregateVersion[+E <: Event](version: Int) {
   private[loco] def decrement = AggregateVersion(version - 1)
