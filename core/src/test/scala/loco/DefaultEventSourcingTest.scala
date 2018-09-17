@@ -27,7 +27,7 @@ class DefaultEventSourcingTest extends UnitSpec {
     (repository.saveEvents _).expects(metaEvents).returns(IO.unit)
     (view.handle _).expects(metaEvents).returns(IO.unit)
 
-    noException should be thrownBy es.saveEvents(id, AggregateVersion.none, NonEmptyList.of(event1, event2)).unsafeRunSync()
+    noException should be thrownBy es.saveEvents(NonEmptyList.of(event1, event2), id, AggregateVersion.none).unsafeRunSync()
 
     errorReporter shouldNot haveError
   }
@@ -36,7 +36,7 @@ class DefaultEventSourcingTest extends UnitSpec {
     val error = new RuntimeException("error")
     (repository.saveEvents _).expects(metaEvents).returns(IO.raiseError(error))
 
-    val exception = the[RuntimeException] thrownBy es.saveEvents(id, AggregateVersion.none, NonEmptyList.of(event1, event2)).unsafeRunSync()
+    val exception = the[RuntimeException] thrownBy es.saveEvents(NonEmptyList.of(event1, event2), id, AggregateVersion.none).unsafeRunSync()
 
     assert(exception == error)
     errorReporter shouldNot haveError
@@ -47,13 +47,13 @@ class DefaultEventSourcingTest extends UnitSpec {
     (repository.saveEvents _).expects(metaEvents).returns(IO.unit)
     (view.handle _).expects(metaEvents).returns(IO.raiseError(error))
 
-    noException should be thrownBy es.saveEvents(id, AggregateVersion.none, NonEmptyList.of(event1, event2)).unsafeRunSync()
+    noException should be thrownBy es.saveEvents(NonEmptyList.of(event1, event2), id, AggregateVersion.none).unsafeRunSync()
 
     errorReporter should haveExactError(error)
   }
 
   it should "fetch some meta aggregate" in new ctx {
-    (repository.fetchEvents _).expects(id, AggregateVersion.max).returns(fs2.Stream.fromIterator[IO,MetaEvent[IncrementEvent]](metaEvents.toList.iterator))
+    (repository.fetchEvents _).expects(id, AggregateVersion.max).returns(fs2.Stream.fromIterator[IO, MetaEvent[IncrementEvent]](metaEvents.toList.iterator))
 
     es.fetchMetaAggregate(id).unsafeRunSync() should be(Some(aggregate))
   }
