@@ -56,7 +56,7 @@ object TransactionBuilder extends AggregateBuilder[Transaction, TransactionEvent
 ```
 - Initialize event sourcing 
 ```scala
-val repository = InMemoryRepository[IO, TransactionEvent]()
+ val repository = InMemoryRepository.unsafeCreate[IO, TransactionEvent]
 val eventSourcing = DefaultEventSourcing[IO, TransactionEvent, Transaction](
   TransactionBuilder,
   repository, // maintains in memory storage of events backed by mutable reference to map

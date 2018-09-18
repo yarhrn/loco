@@ -3,15 +3,15 @@ package loco.repository
 import cats.data.NonEmptyList
 import cats.effect.IO
 import loco.domain._
+import cats.implicits._
+import loco.repository.EventsRepository.ConcurrentModificationException
 import org.scalatest.{FlatSpec, Matchers}
 
 class InMemoryRepositoryTest extends FlatSpec with Matchers with TestDomainData {
 
   trait ctx {
-    val repository = new InMemoryRepository[Forum, ForumPostEvent]()
+    val repository = InMemoryRepository.unsafeCreate[IO, ForumPostEvent]
   }
-
-  type Forum[A] = IO[A]
 
   "InMemoryRepository" should "store events" in new ctx {
 
@@ -20,6 +20,19 @@ class InMemoryRepositoryTest extends FlatSpec with Matchers with TestDomainData 
     val result = repository.saveEvents(NonEmptyList.one(metaEvent)).flatMap(_ => repository.fetchEvents(metaEvent.aggregateId).compile.toList)
 
     result.unsafeRunSync().head shouldBe metaEvent
+  }
+
+  it should "throw exception in case of same version is saved" in new ctx {
+
+    val metaEvent = getMetaEvent(AggregateVersion(1), "Hello world", Users.john)
+
+    val savingEvents = repository.saveEvents(NonEmptyList.one(metaEvent))
+    assertThrows[ConcurrentModificationException] {
+      (savingEvents, savingEvents).tupled.unsafeRunSync()
+    }
+
+
+    repository.fetchEvents(metaEvent.aggregateId).compile.toList.unsafeRunSync().head shouldBe metaEvent
   }
 
   def getMetaEvent(version: AggregateVersion[ForumPostEvent], content: String, author: User): MetaEvent[ForumPostEvent] = {

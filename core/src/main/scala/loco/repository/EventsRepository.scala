@@ -11,3 +11,7 @@ trait EventsRepository[F[_], E <: Event] {
   def saveEvents(events: NonEmptyList[MetaEvent[E]]): F[Unit]
 
 }
+
+object EventsRepository{
+  class ConcurrentModificationException() extends RuntimeException
+}

@@ -50,7 +50,7 @@ object TransactionBuilder extends AggregateBuilder[Transaction, TransactionEvent
 object example {
 
   def main(args: Array[String]): Unit = {
-    val repository = InMemoryRepository[IO, TransactionEvent]()
+    val repository = InMemoryRepository.unsafeCreate[IO, TransactionEvent]
     val eventSourcing = DefaultEventSourcing[IO, TransactionEvent, Transaction](
       TransactionBuilder,
       repository, // maintains in memory storage of events backed by mutable reference to map

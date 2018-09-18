@@ -18,7 +18,7 @@ class ExampleSpec extends FlatSpec with Matchers with MockFactory {
     val mockedView = stub[View[IO, TransactionEvent]]
     implicit val timer: FakeTimer[IO] = new FakeTimer[IO]()
     val errorReporter: ConsoleErrorReporter[IO] = new ConsoleErrorReporter[IO]()
-    val eventRepository = InMemoryRepository[IO, TransactionEvent]()
+    val eventRepository = InMemoryRepository.unsafeCreate[IO, TransactionEvent]
     val eventSourcing = DefaultEventSourcing[IO, TransactionEvent, Transaction](TransactionBuilder, eventRepository, mockedView, errorReporter)
   }
 
