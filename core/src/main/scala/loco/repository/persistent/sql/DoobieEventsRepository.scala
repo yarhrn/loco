@@ -1,4 +1,4 @@
-package loco.repository.sql
+package loco.repository.persistent.sql
 
 import java.sql.Timestamp
 import java.time.Instant

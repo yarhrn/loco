@@ -1,4 +1,4 @@
-package loco.repository.sql
+package loco.repository.persistent.sql
 
 case class EventsTableConfiguration(eventsTable: String,
                                     aggregateIdColumn: String,
