@@ -8,8 +8,9 @@ import loco.domain.{AggregateVersion, MetaEvent}
 import loco.test.FakeTimer
 import loco.{IncrementFixture, UnitSpec}
 import loco.repository.EmbeddedDBEnv._
+import loco.repository.ITTest
 
-class MongoDBEventsRepositoryTest extends UnitSpec {
+class MongoDBEventsRepositoryTest extends UnitSpec with ITTest{
 
 
   trait ctx extends IncrementFixture {
