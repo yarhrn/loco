@@ -100,12 +100,14 @@ lazy val example = (project in file("example")).
   settings(
     inThisBuild(common),
     name := "example",
-    libraryDependencies ++= Seq(scalaTest, scalaMock)
+    libraryDependencies ++= Seq(scalaTest, scalaMock),
+    skip in publish := true
   ).dependsOn(core % "test->test;compile->compile")
 
 lazy val it = (project in file("it")).
   settings(
     inThisBuild(common),
     name := "it",
-    libraryDependencies ++= Seq(scalaTest, scalaMock, mysql, embeddedMysql)
+    libraryDependencies ++= Seq(scalaTest, scalaMock, mysql, embeddedMysql),
+    skip in publish := true
   ).dependsOn(core % "test->test;compile->compile")
