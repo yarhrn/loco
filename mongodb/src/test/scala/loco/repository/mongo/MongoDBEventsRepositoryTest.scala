@@ -54,29 +54,14 @@ class MongoDBEventsRepositoryTest extends UnitSpec {
   }
 
   "Mongodb events repository" should "save events and retrieve events" in new ctx {
-    val z = Try {
 
-      val metaEvents1: NonEmptyList[MetaEvent[IncrementEvent]] = NonEmptyList.fromListUnsafe(
-        List.tabulate(10)(counter => metaEventFrom(newEvent, timer.tick().instant, counter + 1))
-      )
-      val metaEvents2: NonEmptyList[MetaEvent[IncrementEvent]] = NonEmptyList.fromListUnsafe(
-        List.tabulate(10)(counter => metaEventFrom(newEvent, timer.tick().instant, counter + 20))
-      )
+    val metaEvents: NonEmptyList[MetaEvent[IncrementEvent]] = NonEmptyList.fromListUnsafe(
+      List.tabulate(10)(counter => metaEventFrom(newEvent, timer.tick().instant, counter + 1))
+    )
 
-      val metaEvents3: NonEmptyList[MetaEvent[IncrementEvent]] = NonEmptyList.fromListUnsafe(
-        List.tabulate(10)(counter => metaEventFrom(newEvent, timer.tick().instant, counter + 15))
-      )
+    repository.saveEvents(metaEvents).unsafeRunSync()
 
-      repository.saveEvents(metaEvents1).unsafeRunSync()
-      repository.saveEvents(metaEvents2).unsafeRunSync()
-      repository.saveEvents(metaEvents3).unsafeRunSync()
-//      repository.saveEvents(metaEvents).unsafeRunSync()
-//      repository.saveEvents(NonEmptyList.fromListUnsafe(metaEvents.toList.drop(5))).unsafeRunSync()
-
-      //      repository.fetchEvents(id, AggregateVersion.max).compile.to[List].unsafeRunSync() shouldBe metaEvents.toList
-    }
-    process.stop()
-    z.get
+    repository.fetchEvents(id, AggregateVersion.max).compile.to[List].unsafeRunSync() shouldBe metaEvents.toList
   }
 
 
