@@ -8,7 +8,7 @@ import de.flapdoodle.embed.mongo.MongodStarter
 import de.flapdoodle.embed.mongo.config.{MongodConfigBuilder, Net}
 import de.flapdoodle.embed.mongo.distribution.Version
 import loco.IncrementFixture
-import loco.repository.persistent.sql.Codec
+import loco.repository.persistent.Codec
 
 object EmbeddedDBEnv {
   val port = 12345

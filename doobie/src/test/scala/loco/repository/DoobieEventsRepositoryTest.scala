@@ -3,12 +3,13 @@ package loco.repository
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.util.transactor.Transactor
-import loco.EmbeddedDBEnv._
 import loco.IncrementFixture._
 import loco.domain.{AggregateVersion, MetaEvent}
-import loco.repository.persistent.sql.{Codec, DoobieEventsRepository, EventsTableConfiguration}
+import loco.repository.persistent.Codec
+import loco.repository.persistent.doobie.{DoobieEventsRepository, EventsTableConfiguration}
 import loco.test.FakeTimer
-import loco.{ITTest, IncrementFixture, RecordingLogHandler, UnitSpec}
+import loco._
+import loco.EmbeddedDBEnv._
 
 class DoobieEventsRepositoryTest extends UnitSpec with ITTest {
 

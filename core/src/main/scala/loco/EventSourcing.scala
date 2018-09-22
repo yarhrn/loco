@@ -48,7 +48,7 @@ class DefaultEventSourcing[F[_], E <: Event, A <: Aggregate[E]](builder: MetaAgg
 
   override def saveEvents(events: NonEmptyList[E], id: AggregateId[E] = AggregateId.random, lastKnownVersion: AggregateVersion[E] = AggregateVersion.none): F[AggregateId[E]] = {
     for {
-      instant <- T.clockRealTime(TimeUnit.MILLISECONDS).map(Instant.ofEpochMilli)
+      instant <- T.clock.realTime(TimeUnit.MILLISECONDS).map(Instant.ofEpochMilli)
       metaEvents = MetaEvent.fromRawEvents(id, instant, lastKnownVersion, events)
       _ <- repository.saveEvents(metaEvents)
       _ <- view.handle(metaEvents).reportError

@@ -1,4 +1,4 @@
-package loco.repository.persistent.sql
+package loco.repository.persistent
 
 import java.nio.charset.StandardCharsets
 
