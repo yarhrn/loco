@@ -84,6 +84,13 @@ lazy val core = (project in file("core"))
 
 releasePublishArtifactsAction := PgpKeys.publishSigned.value
 
+lazy val mongodb = (project in file("mongodb"))
+  .settings(
+    inThisBuild(common),
+    name := "loco-mongodb",
+    libraryDependencies ++= Seq(mongodbClient, mongodbEmbedded)
+  ).dependsOn(core % "test->test;compile->compile")
+
 lazy val example = (project in file("example")).
   settings(
     inThisBuild(common),

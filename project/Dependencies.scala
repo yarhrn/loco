@@ -12,4 +12,7 @@ object Dependencies {
   lazy val jsoniter = "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-core" % "0.29.20"
   lazy val jsoniterMacros = "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % "0.29.20"
 
+  lazy val mongodbClient = "org.mongodb" % "mongodb-driver-async" % "3.8.2"
+
+  lazy val mongodbEmbedded = "de.flapdoodle.embed" % "de.flapdoodle.embed.mongo" % "2.1.1" % Test
 }

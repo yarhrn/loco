@@ -6,7 +6,7 @@ import doobie.util.transactor.Transactor
 import loco.EmbeddedDBEnv._
 import loco.IncrementFixture._
 import loco.domain.{AggregateVersion, MetaEvent}
-import loco.repository.sql.{Codec, DoobieEventsRepository, EventsTableConfiguration}
+import loco.repository.persistent.sql.{Codec, DoobieEventsRepository, EventsTableConfiguration}
 import loco.test.FakeTimer
 import loco.{ITTest, IncrementFixture, RecordingLogHandler, UnitSpec}
 
