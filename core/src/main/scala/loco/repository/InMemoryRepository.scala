@@ -16,8 +16,7 @@ case class InMemoryRepository[F[_] : Sync, E <: Event](storage: Ref[F, Map[Aggre
   override def fetchEvents(id: AggregateId[E], version: AggregateVersion[E] = AggregateVersion.max): fs2.Stream[F, MetaEvent[E]] = {
     fs2.Stream.eval(storage.get.map(m => m(id).take(version.version)))
       .flatMap { events =>
-        fs2.Stream.apply[MetaEvent[E]](events: _*)
-          .covary[F]
+        fs2.Stream.apply(events: _*)
       }
   }
 

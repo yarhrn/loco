@@ -1,4 +1,4 @@
-package loco.repository.persistent.sql
+package loco.repository.persistent.doobie
 
 import java.sql.Timestamp
 import java.time.Instant
@@ -7,13 +7,14 @@ import cats.Monad
 import cats.data.NonEmptyList
 import cats.implicits._
 import doobie.implicits._
-import doobie.util.log.LogHandler
 import doobie.util.Meta
+import doobie.util.log.LogHandler
 import doobie.util.query.Query
 import doobie.util.transactor.Transactor
 import doobie.util.update.Update
 import loco.domain.{AggregateId, AggregateVersion, Event, MetaEvent}
 import loco.repository.EventsRepository
+import loco.repository.persistent.Codec
 
 import scala.reflect.runtime.universe.TypeTag
 

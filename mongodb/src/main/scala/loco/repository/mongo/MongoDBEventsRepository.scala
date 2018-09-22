@@ -13,8 +13,9 @@ import loco.domain.{AggregateId, AggregateVersion, Event, MetaEvent}
 import loco.repository.EventsRepository
 import loco.repository.EventsRepository.ConcurrentModificationException
 import loco.repository.mongo.MongoDBFS2._
-import loco.repository.persistent.sql.Codec
-import org.bson.{BsonObjectId, Document}
+import loco.repository.persistent.Codec
+import org.bson.Document
+
 import scala.collection.JavaConverters._
 
 class MongoDBEventsRepository[F[_] : Async, E <: Event : Codec](col: MongoCollection[Document]) extends EventsRepository[F, E] {

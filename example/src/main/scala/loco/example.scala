@@ -1,6 +1,6 @@
 package loco
 
-import java.util.{Currency, UUID}
+import java.util.Currency
 
 import cats.data.NonEmptyList
 import cats.effect.IO
@@ -9,7 +9,7 @@ import loco.domain.{Aggregate, AggregateId, Event, MetaEvent}
 import loco.repository.InMemoryRepository
 import loco.view.View
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 sealed trait TransactionEvent extends Event
 
@@ -50,7 +50,9 @@ object TransactionBuilder extends AggregateBuilder[Transaction, TransactionEvent
 object example {
 
   def main(args: Array[String]): Unit = {
+    implicit val _ = IO.timer(ExecutionContext.global)
     val repository = InMemoryRepository.unsafeCreate[IO, TransactionEvent]
+
     val eventSourcing = DefaultEventSourcing[IO, TransactionEvent, Transaction](
       TransactionBuilder,
       repository, // maintains in memory storage of events backed by mutable reference to map
