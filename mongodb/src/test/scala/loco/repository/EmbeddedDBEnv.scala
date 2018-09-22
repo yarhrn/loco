@@ -12,21 +12,21 @@ import loco.repository.persistent.Codec
 
 object EmbeddedDBEnv {
   val port = 12345
-
   val starter = MongodStarter.getDefaultInstance
   val bindIp = "localhost"
+
   val mongodConfig = new MongodConfigBuilder()
     .version(Version.Main.PRODUCTION)
     .net(new Net(bindIp, port, false))
     .build()
 
-  val process = starter.prepare(mongodConfig).start()
+  val db = starter.prepare(mongodConfig).start()
 
   val client = MongoClients.create(s"mongodb://$bindIp:$port")
   implicit val codec = Codec.fromJsonCodec(IncrementFixture.jsonValueCodec)
   val collection = client.getDatabase("loco").getCollection("increment")
 
-  def givenUniqueIndex(aggregateId: String = "aggregate_id", version: String = "version") = {
+  def givenUniqueIndex(aggregateId: String = "aggregate_id", version: String = "version"): Unit = {
     IO.async { cb: (Either[Throwable, Unit] => Unit) =>
       collection.createIndex(Indexes.ascending(aggregateId, version),
         new IndexOptions().unique(true), new SingleResultCallback[String] {

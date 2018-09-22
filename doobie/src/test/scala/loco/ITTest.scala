@@ -9,10 +9,10 @@ trait ITTest extends Suite with BeforeAndAfterEach with BeforeAndAfterAll {
   def schemaScript: String
 
   override def beforeEach(): Unit = {
-    EmbeddedDBEnv.mysqld.reloadSchema(EmbeddedDBEnv.schema, Sources.fromString(schemaScript))
+    EmbeddedDBEnv.db.reloadSchema(EmbeddedDBEnv.schema, Sources.fromString(schemaScript))
   }
 
   override def afterAll() = {
-    EmbeddedDBEnv.mysqld.stop()
+    EmbeddedDBEnv.db.stop()
   }
 }

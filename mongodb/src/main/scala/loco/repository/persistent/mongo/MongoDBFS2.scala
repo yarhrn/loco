@@ -1,7 +1,7 @@
 /*
   copied from https://github.com/fiadliel/fs2-mongodb/blob/master/src/main/scala/org/lyranthe/fs2_mongodb/imports.scala
  */
-package loco.repository.mongo
+package loco.repository.persistent.mongo
 
 import com.mongodb.async.client.{MongoCollection, MongoIterable}
 import com.mongodb.async.{AsyncBatchCursor, SingleResultCallback}

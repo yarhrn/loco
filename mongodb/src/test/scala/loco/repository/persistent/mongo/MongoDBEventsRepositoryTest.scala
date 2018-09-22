@@ -1,4 +1,4 @@
-package loco.repository.mongo
+package loco.repository.persistent.mongo
 
 
 import cats.data.NonEmptyList

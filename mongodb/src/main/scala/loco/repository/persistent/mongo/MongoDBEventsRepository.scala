@@ -1,4 +1,4 @@
-package loco.repository.mongo
+package loco.repository.persistent.mongo
 
 import java.util.Date
 
@@ -12,10 +12,10 @@ import com.mongodb.client.model.Filters
 import loco.domain.{AggregateId, AggregateVersion, Event, MetaEvent}
 import loco.repository.EventsRepository
 import loco.repository.EventsRepository.ConcurrentModificationException
-import loco.repository.mongo.MongoDBFS2._
 import loco.repository.persistent.Codec
+import loco.repository.persistent.mongo.MongoDBFS2._
 import org.bson.Document
-
+import org.bson.types.ObjectId
 import scala.collection.JavaConverters._
 
 class MongoDBEventsRepository[F[_] : Async, E <: Event : Codec](col: MongoCollection[Document]) extends EventsRepository[F, E] {
@@ -42,8 +42,6 @@ class MongoDBEventsRepository[F[_] : Async, E <: Event : Codec](col: MongoCollec
 
 
   override def saveEvents(events: NonEmptyList[MetaEvent[E]]) = {
-    import org.bson.Document
-    import org.bson.types.ObjectId
 
 
     val documents = events.sortBy(_.version.version).toList.map { event =>

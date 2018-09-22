@@ -51,8 +51,9 @@ val common = List(
     "-Ywarn-value-discard" // Warn when non-Unit expression results are unused.
   )
 )
+inThisBuild(common)
 
-val pubslishing = List(
+val publishing = List(
   pgpReadOnly := false,
   organization := "com.yarhrn",
   homepage := Some(url("https://github.com/yarhrn/loco")),
@@ -74,7 +75,6 @@ val pubslishing = List(
 
 lazy val core = (project in file("core"))
   .settings(
-    inThisBuild(common),
     name := "loco-core",
     libraryDependencies ++= Seq(
       scalaTest,
@@ -84,22 +84,20 @@ lazy val core = (project in file("core"))
       jsoniter,
       jsoniterMacros
     ),
-    pubslishing
+    publishing
   )
 
 releasePublishArtifactsAction := PgpKeys.publishSigned.value
 
 lazy val mongodb = (project in file("mongodb"))
   .settings(
-    inThisBuild(common),
     name := "loco-mongodb",
     libraryDependencies ++= Seq(mongodbClient, mongodbEmbedded),
-    pubslishing
+    publishing
   ).dependsOn(core % "test->test;compile->compile")
 
 lazy val example = (project in file("example")).
   settings(
-    inThisBuild(common),
     name := "example",
     libraryDependencies ++= Seq(scalaTest, scalaMock),
     skip in publish := true
@@ -107,8 +105,8 @@ lazy val example = (project in file("example")).
 
 lazy val doobie = (project in file("doobie"))
   .settings(
-    inThisBuild(common),
+    common,
     name := "loco-doobie",
     libraryDependencies ++= Seq(doobieCore, scalaTest, scalaMock, mysql, embeddedMysql),
-    pubslishing
+    publishing
   ).dependsOn(core % "test->test;compile->compile")

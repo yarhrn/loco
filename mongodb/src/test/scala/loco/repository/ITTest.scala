@@ -10,6 +10,6 @@ trait ITTest extends Suite with BeforeAndAfterEach with BeforeAndAfterAll {
   }
 
   override def afterAll(): Unit = {
-    EmbeddedDBEnv.process.stop()
+    EmbeddedDBEnv.db.stop()
   }
 }
