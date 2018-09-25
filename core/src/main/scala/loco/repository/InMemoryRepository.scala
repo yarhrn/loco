@@ -3,12 +3,11 @@ package loco.repository
 import java.time.Instant
 
 import cats.data.NonEmptyList
-import cats.effect.{IO, Sync}
 import cats.effect.concurrent.Ref
-import loco.domain.{AggregateId, AggregateVersion, Event, MetaEvent}
+import cats.effect.{IO, Sync}
 import cats.implicits._
+import loco.domain.{AggregateId, AggregateVersion, Event, MetaEvent}
 import loco.repository.EventsRepository.ConcurrentModificationException
-
 import scala.language.higherKinds
 
 case class InMemoryRepository[F[_] : Sync, E <: Event](storage: Ref[F, Map[AggregateId[E], List[MetaEvent[E]]]]) extends EventsRepository[F, E] {
@@ -24,13 +23,14 @@ case class InMemoryRepository[F[_] : Sync, E <: Event](storage: Ref[F, Map[Aggre
     storage.update {
       old =>
         val id = events.head.aggregateId
+        val eventsList = events.toList
         old.get(id) match {
-          case None => old + (id -> events.toList)
+          case None => old + (id -> eventsList)
           case Some(x) =>
-            if (events.map(_.version).toList.toSet.intersect(x.map(_.version).toList.toSet).isEmpty) {
-              old + (id -> (x ++ events.toList))
+            if (events.map(_.version).toList.toSet.intersect(x.map(_.version).toSet).isEmpty) {
+              old + (id -> (x ++ eventsList))
             } else {
-              throw new ConcurrentModificationException()
+              throw new ConcurrentModificationException(id, eventsList.map(_.version))
             }
         }
     }

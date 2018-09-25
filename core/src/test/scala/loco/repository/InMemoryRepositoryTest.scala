@@ -4,6 +4,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import loco.domain._
 import cats.implicits._
+import loco.IncrementFixture.IncrementEvent
 import loco.repository.EventsRepository.ConcurrentModificationException
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -27,7 +28,7 @@ class InMemoryRepositoryTest extends FlatSpec with Matchers with TestDomainData 
     val metaEvent = getMetaEvent(AggregateVersion(1), "Hello world", Users.john)
 
     val savingEvents = repository.saveEvents(NonEmptyList.one(metaEvent))
-    assertThrows[ConcurrentModificationException] {
+    assertThrows[ConcurrentModificationException[IncrementEvent]] {
       (savingEvents, savingEvents).tupled.unsafeRunSync()
     }
 

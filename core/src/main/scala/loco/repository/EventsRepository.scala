@@ -2,6 +2,7 @@ package loco.repository
 
 import cats.data.NonEmptyList
 import loco.domain.{AggregateId, AggregateVersion, Event, MetaEvent}
+
 import scala.language.higherKinds
 
 trait EventsRepository[F[_], E <: Event] {
@@ -12,6 +13,11 @@ trait EventsRepository[F[_], E <: Event] {
 
 }
 
-object EventsRepository{
-  class ConcurrentModificationException() extends RuntimeException
+object EventsRepository {
+
+  class ConcurrentModificationException[E <: Event](aggregateId: AggregateId[E],
+                                                              versions: List[AggregateVersion[E]]) extends RuntimeException(
+    s"concurrent modification exception has occurred while saving events for ${aggregateId.id}, versions are ${versions.map(_.version)}"
+  )
+
 }

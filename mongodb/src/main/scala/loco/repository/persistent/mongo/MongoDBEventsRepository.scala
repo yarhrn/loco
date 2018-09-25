@@ -8,7 +8,7 @@ import cats.effect.Async
 import cats.implicits._
 import com.mongodb.MongoBulkWriteException
 import com.mongodb.async.client.MongoCollection
-import com.mongodb.client.model.Filters
+import com.mongodb.client.model.{Filters, Sorts}
 import loco.domain.{AggregateId, AggregateVersion, Event, MetaEvent}
 import loco.repository.EventsRepository
 import loco.repository.EventsRepository.ConcurrentModificationException
@@ -16,6 +16,7 @@ import loco.repository.persistent.Codec
 import loco.repository.persistent.mongo.MongoDBFS2._
 import org.bson.Document
 import org.bson.types.ObjectId
+
 import scala.collection.JavaConverters._
 
 class MongoDBEventsRepository[F[_] : Async, E <: Event : Codec](col: MongoCollection[Document]) extends EventsRepository[F, E] {
@@ -26,7 +27,9 @@ class MongoDBEventsRepository[F[_] : Async, E <: Event : Codec](col: MongoCollec
   val aggregateIdField = "aggregateId"
 
   override def fetchEvents(id: AggregateId[E], version: AggregateVersion[E]) = {
-    col.find(new Document().append("aggregateId", id.id)).stream.map { document: Document =>
+    val criteria = Filters.and(Filters.eq(aggregateIdField,id.id),Filters.lte(versionField,version.version))
+    col.find(criteria)
+      .sort(Sorts.ascending(versionField)).stream.map { document: Document =>
       val createdAt = document.getDate(createdAtField).toInstant
       val version = document.getInteger(versionField)
       val event = Codec[E].decode(document.get(eventField).asInstanceOf[Document].toJson)
@@ -44,7 +47,8 @@ class MongoDBEventsRepository[F[_] : Async, E <: Event : Codec](col: MongoCollec
   override def saveEvents(events: NonEmptyList[MetaEvent[E]]) = {
 
 
-    val documents = events.sortBy(_.version.version).toList.map { event =>
+    val evetsList = events.sortBy(_.version.version).toList
+    val documents = evetsList.map { event =>
       val id = ObjectId.get()
       (id, new Document()
         .append("_id", id)
@@ -58,8 +62,10 @@ class MongoDBEventsRepository[F[_] : Async, E <: Event : Codec](col: MongoCollec
       case Right(_) => ().pure[F]
       case Left(ex: MongoBulkWriteException) =>
         val insertedDocs = Filters.in("_id", documents.map(_._1).take(ex.getWriteResult.getInsertedCount).asJava)
-
-        col.effect[F].deleteMany(insertedDocs) *> MonadError[F, Throwable].raiseError(new ConcurrentModificationException())
+        col.effect[F].deleteMany(insertedDocs) *> MonadError[F, Throwable].raiseError(new ConcurrentModificationException(
+          evetsList.head.aggregateId,
+          evetsList.map(_.version)
+        ))
       case Left(ex) => MonadError[F, Throwable].raiseError(ex)
     }
   }
