@@ -1,4 +1,6 @@
-# loco
+# loco 
+[![Build Status](https://travis-ci.org/yarhrn/loco.svg?branch=master)](https://travis-ci.org/yarhrn/loco)
+
 This project aims to provide a lightweight, composable library for doing event sourcing. 
 
 The core of loco is very small and built using [tagless final](https://www.youtube.com/watch?v=8sgAUIB8JOY) on top of [cats-effect type classes](https://typelevel.org/cats-effect/typeclasses/).
