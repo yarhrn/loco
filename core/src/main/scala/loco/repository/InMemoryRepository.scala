@@ -1,13 +1,12 @@
 package loco.repository
 
-import java.time.Instant
-
 import cats.data.NonEmptyList
+import cats.effect.Sync
 import cats.effect.concurrent.Ref
-import cats.effect.{IO, Sync}
 import cats.implicits._
 import loco.domain.{AggregateId, AggregateVersion, Event, MetaEvent}
 import loco.repository.EventsRepository.ConcurrentModificationException
+
 import scala.language.higherKinds
 
 case class InMemoryRepository[F[_] : Sync, E <: Event](storage: Ref[F, Map[AggregateId[E], List[MetaEvent[E]]]]) extends EventsRepository[F, E] {
@@ -41,20 +40,5 @@ object InMemoryRepository {
   def unsafeCreate[F[_] : Sync, E <: Event] = {
     val storage = Ref.unsafe(Map.empty[AggregateId[E], List[MetaEvent[E]]])
     InMemoryRepository(storage)
-  }
-
-
-  object Foo extends Event
-
-  def main(args: Array[String]): Unit = {
-    val unit = unsafeCreate[IO, Foo.type]
-    val asd = MetaEvent(
-      AggregateId("1"),
-      Foo,
-      Instant.now(),
-      AggregateVersion(1)
-    )
-    unit.saveEvents(NonEmptyList.of(asd)).unsafeRunSync()
-    unit.saveEvents(NonEmptyList.of(asd.copy(version = AggregateVersion(2)))).unsafeRunSync()
   }
 }
