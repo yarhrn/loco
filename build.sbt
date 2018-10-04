@@ -71,6 +71,8 @@ val publishing = List(
       Opts.resolver.sonatypeStaging
   ),
   publishConfiguration := publishConfiguration.value.withOverwrite(true),
+  releasePublishArtifactsAction := PgpKeys.publishSigned.value
+
 )
 
 lazy val core = (project in file("core"))
