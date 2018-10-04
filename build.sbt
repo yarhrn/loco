@@ -53,6 +53,8 @@ val common = List(
 )
 inThisBuild(common)
 
+
+
 val publishing = List(
   pgpReadOnly := false,
   organization := "com.yarhrn",
@@ -74,6 +76,15 @@ val publishing = List(
   releasePublishArtifactsAction := PgpKeys.publishSigned.value
 
 )
+
+lazy val root = project
+  .in(file("."))
+  .aggregate(
+    core,
+    mongodb,
+    doobie,
+    example
+  )
 
 lazy val core = (project in file("core"))
   .settings(
