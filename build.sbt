@@ -3,7 +3,6 @@ import Dependencies._
 val common = List(
   organization := "loco",
   scalaVersion := "2.12.6",
-  version := "0.1.1-SNAPSHOT",
   scalacOptions ++= Seq(
     "-deprecation", // Emit warning and location for usages of deprecated APIs.
     "-encoding", "utf-8", // Specify character encoding used by source files.
@@ -77,7 +76,14 @@ val publishing = List(
 
 )
 
+lazy val noPublishing = Seq(
+  publish := {},
+  publishLocal := {},
+  skip in publish := true
+)
+
 lazy val root = project
+  .settings(noPublishing)
   .in(file("."))
   .aggregate(
     core,
@@ -113,7 +119,7 @@ lazy val example = (project in file("example")).
   settings(
     name := "example",
     libraryDependencies ++= Seq(scalaTest, scalaMock),
-    skip in publish := true
+    noPublishing
   ).dependsOn(core % "test->test;compile->compile")
 
 lazy val doobie = (project in file("doobie"))
