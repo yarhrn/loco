@@ -77,9 +77,11 @@ val publishing = List(
 )
 
 lazy val noPublishing = Seq(
+  publishArtifact := false,
   publish := {},
   publishLocal := {},
-  skip in publish := true
+  skip in publish := true,
+  publishTo := Some("dummy" at "nowhere"),
 )
 
 lazy val root = project
