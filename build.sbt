@@ -3,7 +3,7 @@ import Dependencies._
 val common = List(
   organization := "loco",
   scalaVersion := "2.12.6",
-  version := "0.1.0-SNAPSHOT",
+  version := "0.1.0",
   scalacOptions ++= Seq(
     "-deprecation", // Emit warning and location for usages of deprecated APIs.
     "-encoding", "utf-8", // Specify character encoding used by source files.
