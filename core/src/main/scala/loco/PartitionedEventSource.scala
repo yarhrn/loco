@@ -44,9 +44,9 @@ object PartitionedEventSource {
     }
 
     for {
-      _ <- queue.dequeue.flatMap {
+      _ <- Concurrent[F].start(queue.dequeue.flatMap {
         action => fs2.Stream.eval(action)
-      }.compile.drain
+      }.compile.drain)
     } yield ess
   }
 
