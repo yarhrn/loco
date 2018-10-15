@@ -18,7 +18,8 @@ class PartitionedEventSourceTest extends UnitSpec {
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   trait ctx extends IncrementFixture with ConsoleErrorReporterMatcher[IO] {
-
+    implicit val timer = IO.timer(ec)
+    implicit val cs = IO.contextShift(ec)
 
     val fakeTimer: FakeTimer[IO] = FakeTimer[IO]()
 
@@ -32,9 +33,6 @@ class PartitionedEventSourceTest extends UnitSpec {
 
 
   "DefaultEventSourcing" should "throw an exception in case concurrent modification is occurred" in new ctx {
-
-    implicit val timer = IO.timer(ec)
-    implicit val cs = IO.contextShift(ec)
 
     val cmdWithDelay = new Command[IO, IncrementEvent, Increment, Unit] {
       override def events(a: Increment) = {
@@ -59,10 +57,7 @@ class PartitionedEventSourceTest extends UnitSpec {
     }
   }
 
-  "PartitionedEventSourcing.partition0" should "queue all request to perform every action in 'single thread' mode" in new ctx {
-    implicit val timer = IO.timer(ec)
-    implicit val cs = IO.contextShift(ec)
-
+  "PartitionedEventSourcing.partition0" should "queue all requests to perform every (write) action in a 'single thread' mode" in new ctx {
     val ess = PartitionedEventSource.partition0(es, Queue.unbounded[IO, IO[Unit]].unsafeRunSync()).unsafeRunSync()
 
     val cmdWithDelay = new Command[IO, IncrementEvent, Increment, Unit] {
