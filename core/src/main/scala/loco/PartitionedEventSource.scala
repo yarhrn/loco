@@ -52,14 +52,8 @@ object PartitionedEventSource {
 
   def partition[F[_] : Concurrent, E <: Event, A <: Aggregate[E]](es: EventSourcing[F, E, A], partitionNumber: Int, queue: F[Queue[F, F[Unit]]]) = {
     for {
-      partitions <- queue.replicateA(partitionNumber).map {
-        queues =>
-          queues.zipWithIndex.map(_.swap).toMap
-      }.map(_.mapValues(queue => partition0[F, E, A](es, queue))).map {
-        _.toList.map {
-          case (p, es) => es.map((p, _))
-        }.sequence.map(_.toMap)
-      }.flatten
+      queues <-  queue.replicateA(partitionNumber)
+      partitions <- queues.traverse(partition0[F, E, A](es, _)).map(_.zipWithIndex.map(_.swap).toMap)
     } yield new EventSourcing[F, E, A] {
 
       override def saveEvents(events: NonEmptyList[E], id: AggregateId[E], lastKnownVersion: AggregateVersion[E]) = {
