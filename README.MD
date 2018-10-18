@@ -13,7 +13,7 @@ Right now loco supports MySQL or MongoDB as event storage, but it can be replace
 
 - Add loco as a dependency 
 ```scala
-libraryDependencies += "com.yarhrn" %% "loco-core" % "0.0.1"
+libraryDependencies += "com.yarhrn" %% "loco-core" % "0.1.1"
 ```
 - Define your events
 ```scala
