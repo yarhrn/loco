@@ -36,6 +36,10 @@ class InMemoryRepositoryTest extends FlatSpec with Matchers with TestDomainData 
     repository.fetchEvents(metaEvent.aggregateId).compile.toList.unsafeRunSync().head shouldBe metaEvent
   }
 
+  it should "not throw exception but return empty list" in new ctx{
+    repository.fetchEvents(AggregateId.random).compile.toList.unsafeRunSync() shouldBe List()
+  }
+
   def getMetaEvent(version: AggregateVersion[ForumPostEvent], content: String, author: User): MetaEvent[ForumPostEvent] = {
     val postCreated = ForumPostEvents.PostCreated(nextVal(), content, author)
     MetaEvent[ForumPostEvent](postCreated.id, postCreated, postCreated.created, version)

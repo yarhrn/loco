@@ -12,7 +12,7 @@ import scala.language.higherKinds
 case class InMemoryRepository[F[_] : Sync, E <: Event](storage: Ref[F, Map[AggregateId[E], List[MetaEvent[E]]]]) extends EventsRepository[F, E] {
 
   override def fetchEvents(id: AggregateId[E], version: AggregateVersion[E] = AggregateVersion.max): fs2.Stream[F, MetaEvent[E]] = {
-    fs2.Stream.eval(storage.get.map(m => m(id).take(version.version)))
+    fs2.Stream.eval(storage.get.map(m => m.getOrElse(id, List()).take(version.version).sortBy(_.version.version)))
       .flatMap { events =>
         fs2.Stream.apply(events: _*)
       }
