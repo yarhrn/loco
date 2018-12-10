@@ -3,13 +3,15 @@ package loco.repository
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.util.transactor.Transactor
+import loco.EmbeddedDBEnv._
 import loco.IncrementFixture._
+import loco._
 import loco.domain.{AggregateVersion, MetaEvent}
 import loco.repository.persistent.Codec
 import loco.repository.persistent.doobie.{DoobieEventsRepository, EventsTableConfiguration}
 import loco.test.FakeTimer
-import loco._
-import loco.EmbeddedDBEnv._
+
+import scala.concurrent.ExecutionContext
 
 class DoobieEventsRepositoryTest extends UnitSpec with ITTest {
 
@@ -19,6 +21,8 @@ class DoobieEventsRepositoryTest extends UnitSpec with ITTest {
 
   trait ctx extends IncrementFixture {
     val (events, logHandler) = RecordingLogHandler.logHandler
+    private val executor = ExecutionContext.fromExecutor(_.run())
+    implicit val cs = IO.contextShift(executor)
     val transactor = Transactor.fromDriverManager[IO](
       "com.mysql.cj.jdbc.Driver",
       s"jdbc:mysql://localhost:$port/$schema",
