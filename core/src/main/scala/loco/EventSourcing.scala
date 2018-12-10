@@ -7,7 +7,7 @@ import cats.Monad
 import cats.data.NonEmptyList
 import cats.effect.{Clock, Sync}
 import loco.ErrorReporter._
-import loco.command.Command
+import loco.command.{Command, FailedCommand, SuccessCommand, SuccessUnitCommand}
 import loco.domain._
 import loco.repository.EventsRepository
 import loco.view._
@@ -35,7 +35,7 @@ trait EventSourcing[F[_], E <: Event, A <: Aggregate[E]] {
 
   /**
     * Builds a meta aggregate(aggregate and version) for given `id`.
-    * In case there is no events associated with the given `id` and version > 0 None is returned.
+    * In case there are no events associated with the given `id` - None is returned.
     */
   def fetchMetaAggregate(id: AggregateId[E]): F[Option[MetaAggregate[E, A]]]
 }
@@ -76,8 +76,9 @@ class DefaultEventSourcing[F[_], E <: Event, A <: Aggregate[E]](builder: MetaAgg
       metaAggregate <- fetchMetaAggregate(id).map(_.getOrElse(builder.empty(id)))
       commandResult <- S.suspend(command.events(metaAggregate.aggregate))
       result <- commandResult match {
-        case Right((events, result)) => save(metaAggregate.version, events) *> Monad[F].pure(result)
-        case Left((exception, events)) => save(metaAggregate.version, events) *> Sync[F].raiseError(exception)
+        case SuccessCommand(result, events) => save(metaAggregate.version, events.toList) *> Monad[F].pure(result)
+        case SuccessUnitCommand(events) => save(metaAggregate.version, events.toList) *> Monad[F].unit.asInstanceOf[F[R]]
+        case FailedCommand(exception, events) => save(metaAggregate.version, events) *> Sync[F].raiseError[R](exception)
       }
     } yield result
   }

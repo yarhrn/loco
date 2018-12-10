@@ -4,12 +4,13 @@ import cats.data.NonEmptyList
 import cats.effect.{IO, Sync}
 import fs2.concurrent.Queue
 import loco.IncrementFixture._
-import loco.command.Command
+import loco.command.{Command, CommandResult}
 import loco.repository.EventsRepository.ConcurrentModificationException
 import loco.repository.InMemoryRepository
 import loco.test.{ConsoleErrorReporter, ConsoleErrorReporterMatcher, FakeTimer}
 import loco.view.View
 import cats.implicits._
+
 import scala.language.postfixOps
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
@@ -39,12 +40,12 @@ class PartitionedEventSourceTest extends UnitSpec {
         for {
           _ <- cs.shift
           _ <- timer.sleep(10 seconds)
-        } yield Right((List(IncrementEvent()), ()))
+        } yield CommandResult.success(IncrementEvent())
       }
     }
 
     val cmd = new Command[IO, IncrementEvent, Increment, Unit] {
-      override def events(a: Increment) = IO(Right((List(IncrementEvent()), ())))
+      override def events(a: Increment) = IO(CommandResult.success(IncrementEvent()))
     }
 
     val f = es.executeCommand(id, cmdWithDelay).unsafeToFuture()
@@ -65,12 +66,12 @@ class PartitionedEventSourceTest extends UnitSpec {
         for {
           _ <- cs.shift
           _ <- timer.sleep(10 seconds)
-        } yield Right((List(IncrementEvent()), ()))
+        } yield CommandResult.success(IncrementEvent())
       }
     }
 
     val cmd = new Command[IO, IncrementEvent, Increment, Unit] {
-      override def events(a: Increment) = IO(println("instant")) *> IO(Right((List(IncrementEvent()), ())))
+      override def events(a: Increment) = IO(println("instant")) *> IO(CommandResult.success(IncrementEvent()))
     }
 
 
