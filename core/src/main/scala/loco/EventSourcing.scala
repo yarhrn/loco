@@ -4,10 +4,10 @@ import java.time.Instant
 import java.util.concurrent.TimeUnit
 
 import cats.Monad
-import cats.data.NonEmptyList
+import cats.data.{Chain, NonEmptyList}
 import cats.effect.{Clock, Sync}
 import loco.ErrorReporter._
-import loco.command.{Command, FailedCommand, SuccessCommand, SuccessUnitCommand}
+import loco.command.{Command, FailedCommand, SuccessCommand}
 import loco.domain._
 import loco.repository.EventsRepository
 import loco.view._
@@ -70,14 +70,15 @@ class DefaultEventSourcing[F[_], E <: Event, A <: Aggregate[E]](builder: MetaAgg
   }
 
   override def executeCommand[R](id: AggregateId[E], command: Command[F, E, A, R]): F[R] = {
-    def save(version: AggregateVersion[E], events: List[E]): F[AggregateId[E]] = NonEmptyList.fromList(events).map(saveEvents(_, id, version)).getOrElse(id.pure[F])
+    def save(version: AggregateVersion[E], events: Chain[E]): F[AggregateId[E]] = {
+      NonEmptyList.fromList(events.toList).map(saveEvents(_, id, version)).getOrElse(id.pure[F])
+    }
 
     for {
       metaAggregate <- fetchMetaAggregate(id).map(_.getOrElse(builder.empty(id)))
       commandResult <- S.suspend(command.events(metaAggregate.aggregate))
       result <- commandResult match {
-        case SuccessCommand(result, events) => save(metaAggregate.version, events.toList) *> Monad[F].pure(result)
-        case SuccessUnitCommand(events) => save(metaAggregate.version, events.toList) *> Monad[F].unit.asInstanceOf[F[R]]
+        case SuccessCommand(result, events) => save(metaAggregate.version, events) *> Monad[F].pure(result)
         case FailedCommand(exception, events) => save(metaAggregate.version, events) *> Sync[F].raiseError[R](exception)
       }
     } yield result

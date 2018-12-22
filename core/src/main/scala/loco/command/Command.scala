@@ -1,7 +1,7 @@
 package loco.command
 
 import cats.Applicative
-import cats.data.NonEmptyList
+import cats.data.Chain
 import loco.domain.{Aggregate, Event}
 
 trait Command[F[_], E <: Event, A <: Aggregate[E], R] {
@@ -18,20 +18,20 @@ object Command {
 
 sealed trait CommandResult[E <: Event, R]
 
-case class FailedCommand[E <: Event, R](th: Throwable, events: List[E] = List()) extends CommandResult[E, R]
+case class FailedCommand[E <: Event, R](th: Throwable, events: Chain[E] = Chain()) extends CommandResult[E, R]
 
-case class SuccessCommand[E <: Event, R](result: R, events: NonEmptyList[E]) extends CommandResult[E, R]
-
-case class SuccessUnitCommand[E <: Event, R](events: NonEmptyList[E]) extends CommandResult[E, R]
+case class SuccessCommand[E <: Event, R](result: R, events: Chain[E] = Chain()) extends CommandResult[E, R]
 
 
 object CommandResult {
-  def success[E <: Event, R](e: E, tail: E*): CommandResult[E, R] = {
-    SuccessUnitCommand[E, R](NonEmptyList.of(e, tail: _*))
+  def success[E <: Event](e: E, tail: E*): CommandResult[E, Unit] = {
+    SuccessCommand[E, Unit]((), Chain(e) ++ Chain(tail: _*))
   }
 
-  def success[E <: Event, R](r: R, e: E, tail: E*): CommandResult[E, R] = {
-    SuccessCommand(r, NonEmptyList.of[E](e, tail: _*))
+  def success[E <: Event, R](r: R, e: E*): CommandResult[E, R] = {
+    SuccessCommand[E, R](r, Chain(e: _*))
   }
+
+  def nothing[E <: Event]: CommandResult[E, Unit] = SuccessCommand[E, Unit]((), Chain())
 
 }
