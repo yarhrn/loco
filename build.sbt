@@ -124,6 +124,17 @@ lazy val example = (project in file("example")).
     noPublishing
   ).dependsOn(core % "test->test;compile->compile")
 
+lazy val laws = (project in file("laws")).
+  settings(
+    name := "laws",
+    libraryDependencies ++= Seq(scalaTest, 
+      scalaMock, 
+      "org.typelevel" %% "discipline" % "0.10.0", 
+      "org.scalatest" %% "scalatest" % "3.0.5",
+      "org.typelevel" % "cats-laws_2.12" % "1.5.0"),
+    noPublishing
+  ).dependsOn(core % "test->test;compile->compile")
+
 lazy val doobie = (project in file("doobie"))
   .settings(
     common,
