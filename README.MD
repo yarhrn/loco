@@ -13,7 +13,7 @@ It is used in production for maintaining premium profile in [Pulsoid](https://pu
 
 - Add loco as a dependency 
 ```scala
-libraryDependencies += "com.yarhrn" %% "loco-core" % "0.2.3"
+libraryDependencies += "com.yarhrn" %% "loco-core" % "0.2.4"
 ```
 - Basic usage
 ```scala
