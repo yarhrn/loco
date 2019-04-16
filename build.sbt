@@ -109,7 +109,7 @@ lazy val core = (project in file("core"))
   )
 
 releasePublishArtifactsAction := PgpKeys.publishSigned.value
-
+        
 lazy val mongodb = (project in file("mongodb"))
   .settings(
     name := "loco-mongodb",

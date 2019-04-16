@@ -11,14 +11,11 @@ import loco.view.View
 
 import scala.concurrent.ExecutionContext
 
+// Events
 sealed trait TransactionEvent extends Event
-
 case class TransactionCreated(amount: BigDecimal, currency: Currency, providerAccountId: String) extends TransactionEvent
-
 case class TransactionProcessed(providerTransactionId: String) extends TransactionEvent
-
 case class TransactionFailed(errorReason: String) extends TransactionEvent
-
 case class TransactionRefunded() extends TransactionEvent
 
 object TransactionStatus extends Enumeration {
@@ -26,6 +23,7 @@ object TransactionStatus extends Enumeration {
   val New, Processed, Refunded, Failed = Value
 }
 
+// Aggregate
 case class Transaction(id: AggregateId[TransactionEvent],
                        status: TransactionStatus,
                        amount: BigDecimal,
@@ -34,6 +32,7 @@ case class Transaction(id: AggregateId[TransactionEvent],
                        errorReason: Option[String],
                        providerTransactionId: Option[String]) extends Aggregate[TransactionEvent]
 
+// Aggregate builder
 object TransactionBuilder extends AggregateBuilder[Transaction, TransactionEvent] {
   override def empty(id: AggregateId[TransactionEvent]): Transaction = Transaction(id, null, null, null, null, None, None)
 
@@ -61,17 +60,20 @@ object example {
     )
 
     val transactionId = eventSourcing.saveEvents(NonEmptyList.of(TransactionCreated(5.5, Currency.getInstance("USD"), "profile-id"))).unsafeRunSync()
-    println(transactionId)
+    println(transactionId) // AggregateId(1dad1044-5812-4558-a687-662fafb5d5fe)
 
     val tx = eventSourcing.fetchMetaAggregate(transactionId).unsafeRunSync()
-    println(tx)
+    println(tx) // Some(MetaAggregate(Transaction(AggregateId(1dad1044-5812-4558-a687-662fafb5d5fe),New,5.5,USD,profile-id,None,None),AggregateVersion(1)))
+
 
     eventSourcing.saveEvents(NonEmptyList.of(TransactionProcessed("transaction-id")), transactionId, tx.get.version).unsafeRunSync()
 
     val tx1 = eventSourcing.fetchMetaAggregate(transactionId).unsafeRunSync()
-    println(tx1)
+    println(tx1) // Some(MetaAggregate(Transaction(AggregateId(1dad1044-5812-4558-a687-662fafb5d5fe),Processed,5.5,USD,profile-id,None,Some(transaction-id)),AggregateVersion(2)))
+
     val metaEvents = repository.fetchEvents(transactionId).compile.toList.unsafeRunSync()
-    println(metaEvents.mkString("\n"))
+    println(metaEvents.mkString("\n")) // MetaEvent(AggregateId(1dad1044-5812-4558-a687-662fafb5d5fe),TransactionCreated(5.5,USD,profile-id),2019-04-16T10:45:11.787Z,AggregateVersion(1))
+                                       //MetaEvent(AggregateId(1dad1044-5812-4558-a687-662fafb5d5fe),TransactionProcessed(transaction-id),2019-04-16T10:45:12.011Z,AggregateVersion(2))
   }
 
 }
