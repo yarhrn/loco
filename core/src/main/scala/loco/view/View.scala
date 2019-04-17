@@ -84,5 +84,5 @@ object View {
     }
   }
 
-  def empty[F[_] : Applicative, E <: Event]: View[F, E] = (events: NonEmptyList[MetaEvent[E]]) => ().pure[F]
+  def empty[F[_] : Applicative, E <: Event]: View[F, E] = (_: NonEmptyList[MetaEvent[E]]) => ().pure[F]
 }

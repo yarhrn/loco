@@ -25,7 +25,8 @@ class MongoDBEventsRepositoryTest extends UnitSpec with ITTest {
       trd.setName(threadName)
       trd
     })
-    val repository = new MongoDBEventsRepository[IO, IncrementEvent](collection, IO.contextShift(ExecutionContext.fromExecutor(pool)))
+    implicit val cs = IO.contextShift(ExecutionContext.fromExecutor(pool))
+    val repository = new MongoDBEventsRepository[IO, IncrementEvent](collection, cs)
     val timer = FakeTimer[IO]()
   }
 

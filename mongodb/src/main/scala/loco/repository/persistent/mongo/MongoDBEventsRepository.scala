@@ -4,23 +4,23 @@ import java.util.Date
 
 import cats.MonadError
 import cats.data.NonEmptyList
-import cats.effect.{Async, ContextShift}
+import cats.effect.{ConcurrentEffect, ContextShift}
 import cats.implicits._
 import com.mongodb.MongoBulkWriteException
-import com.mongodb.async.client.MongoCollection
 import com.mongodb.client.model.{Filters, Sorts}
+import com.mongodb.reactivestreams.client.MongoCollection
 import loco.domain.{AggregateId, AggregateVersion, Event, MetaEvent}
 import loco.repository.EventsRepository
 import loco.repository.EventsRepository.ConcurrentModificationException
 import loco.repository.persistent.Codec
-import loco.repository.persistent.mongo.MongoDBFS2._
+import loco.repository.persistent.mongo.MongoDBFReactiveFS2._
 import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
 
-class MongoDBEventsRepository[F[_] : Async, E <: Event : Codec](col: MongoCollection[Document],
-                                                                cs: ContextShift[F]) extends EventsRepository[F, E] {
+class MongoDBEventsRepository[F[_] : ConcurrentEffect, E <: Event : Codec](col: MongoCollection[Document],
+                                                                           cs: ContextShift[F]) extends EventsRepository[F, E] {
 
   val createdAtField = "createdAt"
   val eventField = "event"
@@ -29,8 +29,8 @@ class MongoDBEventsRepository[F[_] : Async, E <: Event : Codec](col: MongoCollec
 
   override def fetchEvents(id: AggregateId[E], version: AggregateVersion[E]) = {
     val criteria = Filters.and(Filters.eq(aggregateIdField, id.id), Filters.lte(versionField, version.version))
-    col.find(criteria)
-      .sort(Sorts.ascending(versionField)).stream.map { document: Document =>
+    fs2.interop.reactivestreams.fromPublisher(col.find(criteria)
+      .sort(Sorts.ascending(versionField))).map { document: Document =>
       val createdAt = document.getDate(createdAtField).toInstant
       val version = document.getInteger(versionField)
       val event = Codec[E].decode(document.get(eventField).asInstanceOf[Document].toJson)

@@ -2,7 +2,7 @@ import Dependencies._
 
 val common = List(
   organization := "loco",
-  scalaVersion := "2.12.6",
+  scalaVersion := "2.12.8",
   scalacOptions ++= Seq(
     "-deprecation", // Emit warning and location for usages of deprecated APIs.
     "-encoding", "utf-8", // Specify character encoding used by source files.
@@ -109,11 +109,11 @@ lazy val core = (project in file("core"))
   )
 
 releasePublishArtifactsAction := PgpKeys.publishSigned.value
-        
+
 lazy val mongodb = (project in file("mongodb"))
   .settings(
     name := "loco-mongodb",
-    libraryDependencies ++= Seq(mongodbClient, mongodbEmbedded),
+    libraryDependencies ++= Seq(mongodbEmbedded, mongodbReactiveStreams, fs2Reactive),
     publishing
   ).dependsOn(core % "test->test;compile->compile")
 
@@ -127,9 +127,9 @@ lazy val example = (project in file("example")).
 lazy val laws = (project in file("laws")).
   settings(
     name := "laws",
-    libraryDependencies ++= Seq(scalaTest, 
-      scalaMock, 
-      "org.typelevel" %% "discipline" % "0.10.0", 
+    libraryDependencies ++= Seq(scalaTest,
+      scalaMock,
+      "org.typelevel" %% "discipline" % "0.10.0",
       "org.scalatest" %% "scalatest" % "3.0.5",
       "org.typelevel" % "cats-laws_2.12" % "1.5.0"),
     noPublishing
