@@ -9,8 +9,6 @@ import loco.domain.{AggregateVersion, MetaEvent}
 import loco.repository.persistent.Codec
 import loco.repository.persistent.doobie.{DoobieEventsRepository, EventsTableConfiguration}
 import loco.test.FakeTimer
-import ru.yandex.qatools.embed.postgresql.EmbeddedPostgres
-
 import scala.concurrent.ExecutionContext
 
 class DoobieEventsRepositoryTest extends UnitSpec with EmbeddedPosrtesqlDBEnv {
@@ -25,9 +23,10 @@ class DoobieEventsRepositoryTest extends UnitSpec with EmbeddedPosrtesqlDBEnv {
     implicit val cs = IO.contextShift(executor)
     val transactor = Transactor.fromDriverManager[IO](
       "org.postgresql.Driver",
-      postgres.getConnectionUrl.get(),
-      EmbeddedPostgres.DEFAULT_USER,
-      EmbeddedPostgres.DEFAULT_USER
+      postgres.jdbcUrl,
+      postgres.username,
+      postgres.password
+
     )
 
     val codec = Codec.fromJsonCodec(IncrementFixture.jsonValueCodec)
