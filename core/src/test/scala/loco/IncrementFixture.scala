@@ -42,5 +42,5 @@ object IncrementFixture {
   case class Increment(id: AggregateId[IncrementEvent], count: Int, events: List[IncrementEvent]) extends Aggregate[IncrementEvent]
 
 
-  val jsonValueCodec = JsonCodecMaker.make[IncrementEvent](CodecMakerConfig())
+  val jsonValueCodec = JsonCodecMaker.make[IncrementEvent](CodecMakerConfig)
 }

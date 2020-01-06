@@ -2,11 +2,11 @@ package loco
 
 import cats.data.NonEmptyList
 import cats.effect.IO
-import loco.domain.{AggregateVersion, MetaEvent}
+import loco.IncrementFixture._
+import loco.domain.AggregateVersion
 import loco.repository.EventsRepository
 import loco.test.{ConsoleErrorReporter, ConsoleErrorReporterMatcher, FakeTimer}
 import loco.view.View
-import loco.IncrementFixture._
 
 class DefaultEventSourcingTest extends UnitSpec {
 
@@ -53,7 +53,7 @@ class DefaultEventSourcingTest extends UnitSpec {
   }
 
   it should "fetch some meta aggregate" in new ctx {
-    (repository.fetchEvents _).expects(id, AggregateVersion.max).returns(fs2.Stream.fromIterator[IO, MetaEvent[IncrementEvent]](metaEvents.toList.iterator))
+    (repository.fetchEvents _).expects(id, AggregateVersion.max).returns( fs2.Stream(metaEvents.toList : _*))
 
     es.fetchMetaAggregate(id).unsafeRunSync() should be(Some(aggregate))
   }

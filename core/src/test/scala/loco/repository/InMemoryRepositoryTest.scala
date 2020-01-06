@@ -6,9 +6,10 @@ import loco.domain._
 import cats.implicits._
 import loco.IncrementFixture.IncrementEvent
 import loco.repository.EventsRepository.ConcurrentModificationException
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class InMemoryRepositoryTest extends FlatSpec with Matchers with TestDomainData {
+class InMemoryRepositoryTest extends AnyFlatSpec with Matchers with TestDomainData {
 
   trait ctx {
     val repository = InMemoryRepository.unsafeCreate[IO, ForumPostEvent]
