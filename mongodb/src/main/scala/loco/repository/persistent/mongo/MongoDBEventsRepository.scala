@@ -1,5 +1,6 @@
 package loco.repository.persistent.mongo
 
+import java.nio.charset.StandardCharsets
 import java.util.Date
 
 import cats.MonadError
@@ -33,7 +34,7 @@ class MongoDBEventsRepository[F[_] : ConcurrentEffect, E <: Event : Codec](col: 
       .sort(Sorts.ascending(versionField))).map { document: Document =>
       val createdAt = document.getDate(createdAtField).toInstant
       val version = document.getInteger(versionField)
-      val event = Codec[E].decode(document.get(eventField).asInstanceOf[Document].toJson)
+      val event = Codec[E].decode(document.get(eventField).asInstanceOf[Document].toJson.getBytes(StandardCharsets.UTF_8))
       val aggregateId = document.getString(aggregateIdField)
       MetaEvent(
         AggregateId(aggregateId),
@@ -56,7 +57,7 @@ class MongoDBEventsRepository[F[_] : ConcurrentEffect, E <: Event : Codec](col: 
         .append(createdAtField, Date.from(event.createdAt))
         .append(versionField, event.version.version)
         .append(aggregateIdField, event.aggregateId.id)
-        .append(eventField, Document.parse(Codec[E].encode(event.event))))
+        .append(eventField, Document.parse(new String(Codec[E].encode(event.event), StandardCharsets.UTF_8))))
     }
 
     val insertion: F[Unit] = col.effect[F].insertMany(documents.map(_._2)).attempt.flatMap {

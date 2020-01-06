@@ -4,8 +4,8 @@ object Dependencies {
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.1.0" % Test
   lazy val scalaMock = "org.scalamock" %% "scalamock" % "4.4.0" % Test
 
-  lazy val mysql = "mysql" % "mysql-connector-java" % "8.0.15" % Test
-  lazy val embeddedMysql = "com.wix" % "wix-embedded-mysql" % "4.2.0" % Test
+  lazy val postgresql ="org.postgresql" % "postgresql" % "42.2.8" % Test
+  lazy val embeddedPostgresql ="ru.yandex.qatools.embed" % "postgresql-embedded" % "2.10" % Test
 
   lazy val doobieCore = "org.tpolecat" %% "doobie-core" % "0.8.8"
 

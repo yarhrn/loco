@@ -3,17 +3,17 @@ package loco.repository
 import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.util.transactor.Transactor
-import loco.EmbeddedDBEnv._
 import loco.IncrementFixture._
 import loco._
 import loco.domain.{AggregateVersion, MetaEvent}
 import loco.repository.persistent.Codec
 import loco.repository.persistent.doobie.{DoobieEventsRepository, EventsTableConfiguration}
 import loco.test.FakeTimer
+import ru.yandex.qatools.embed.postgresql.EmbeddedPostgres
 
 import scala.concurrent.ExecutionContext
 
-class DoobieEventsRepositoryTest extends UnitSpec with ITTest {
+class DoobieEventsRepositoryTest extends UnitSpec with EmbeddedPosrtesqlDBEnv {
 
   val configuration = EventsTableConfiguration.base("increment")
 
@@ -24,11 +24,11 @@ class DoobieEventsRepositoryTest extends UnitSpec with ITTest {
     private val executor = ExecutionContext.fromExecutor(_.run())
     implicit val cs = IO.contextShift(executor)
     val transactor = Transactor.fromDriverManager[IO](
-      "com.mysql.cj.jdbc.Driver",
-      s"jdbc:mysql://localhost:$port/$schema",
-      username,
-      password)
-
+      "org.postgresql.Driver",
+      postgres.getConnectionUrl.get(),
+      EmbeddedPostgres.DEFAULT_USER,
+      EmbeddedPostgres.DEFAULT_USER
+    )
 
     val codec = Codec.fromJsonCodec(IncrementFixture.jsonValueCodec)
     val repository = DoobieEventsRepository[IO, IncrementEvent](codec, transactor, logHandler, batchSize = 1, tableConfiguration = configuration)

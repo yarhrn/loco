@@ -1,6 +1,6 @@
 package loco.repository.persistent.doobie
 
-import java.sql.Timestamp
+import java.sql.{SQLException, Timestamp}
 import java.time.Instant
 
 import cats.Monad
@@ -17,20 +17,23 @@ import doobie.util.transactor.Transactor
 import doobie.util.update.Update
 import loco.domain.{AggregateId, AggregateVersion, Event, MetaEvent}
 import loco.repository.EventsRepository
+import loco.repository.EventsRepository.ConcurrentModificationException
 import loco.repository.persistent.Codec
 
 import scala.reflect.runtime.universe.TypeTag
 
 case class DoobieEventsRepository[F[_], E <: Event : TypeTag](codec: Codec[E],
-                                                                      transactor: Transactor[F],
-                                                                      logHandler: LogHandler = LogHandler.nop,
-                                                                      batchSize: Int = 100,
-                                                                      tableConfiguration: EventsTableConfiguration)
-                                                                     (implicit bracket: Bracket[F, Throwable])
+                                                              transactor: Transactor[F],
+                                                              logHandler: LogHandler = LogHandler.nop,
+                                                              batchSize: Int = 100,
+                                                              tableConfiguration: EventsTableConfiguration,
+                                                             )
+                                                             (implicit bracket: Bracket[F, Throwable])
   extends EventsRepository[F, E] {
+
   import doobie.implicits.javasql._
 
-  implicit val EMeta: Meta[E] = Meta[String].timap(codec.decode)(codec.encode)
+  implicit val EMeta: Meta[E] = Meta[Array[Byte]].timap(codec.decode)(codec.encode)
   implicit val AggregateVersionMeta: Meta[AggregateVersion[E]] = Meta[Int].timap(AggregateVersion[E])( _.version)
   implicit val AggregateIdMeta: Meta[AggregateId[E]] = Meta[String].timap(AggregateId[E])(_.id)
   implicit val InstantMeta: Meta[Instant] = Meta[Timestamp].timap(_.toInstant)(Timestamp.from)
@@ -76,6 +79,10 @@ case class DoobieEventsRepository[F[_], E <: Event : TypeTag](codec: Codec[E],
     Update[MetaEvent[E]](insertEvents, logHandler0 = logHandler)
       .updateMany(events)
       .transact(transactor)
+      .adaptError{
+        case e: SQLException if e.getSQLState == "23505" =>
+          new ConcurrentModificationException(events.head.aggregateId, events.map(_.version).toList)
+      }
       .map(_ => ())
   }
 
