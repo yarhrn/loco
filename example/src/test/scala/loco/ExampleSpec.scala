@@ -10,9 +10,10 @@ import loco.repository._
 import loco.test.{ConsoleErrorReporter, ConsoleErrorReporterMatcher, FakeTimer}
 import loco.view.View
 import org.scalamock.scalatest.MockFactory
-import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class ExampleSpec extends FlatSpec with Matchers with MockFactory {
+class ExampleSpec extends AnyFlatSpec with Matchers with MockFactory {
 
   trait EventSourcingContext {
     val mockedView = stub[View[IO, TransactionEvent]]
