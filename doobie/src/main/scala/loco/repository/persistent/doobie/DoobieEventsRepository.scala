@@ -22,7 +22,7 @@ import loco.repository.persistent.Codec
 
 import scala.reflect.runtime.universe.TypeTag
 
-case class DoobieEventsRepository[F[_], E <: Event : TypeTag](codec: Codec[E],
+case class DoobieEventsRepository[F[_], E <: Event](codec: Codec[E],
                                                               transactor: Transactor[F],
                                                               logHandler: LogHandler = LogHandler.nop,
                                                               batchSize: Int = 100,
@@ -33,9 +33,9 @@ case class DoobieEventsRepository[F[_], E <: Event : TypeTag](codec: Codec[E],
 
   import doobie.implicits.javasql._
 
-  implicit val EMeta: Meta[E] = Meta[Array[Byte]].timap(codec.decode)(codec.encode)
-  implicit val AggregateVersionMeta: Meta[AggregateVersion[E]] = Meta[Int].timap(AggregateVersion[E])( _.version)
-  implicit val AggregateIdMeta: Meta[AggregateId[E]] = Meta[String].timap(AggregateId[E])(_.id)
+  implicit val EMeta: Meta[E] = Meta[Array[Byte]].imap(codec.decode)(codec.encode)
+  implicit val AggregateVersionMeta: Meta[AggregateVersion[E]] = Meta[Int].imap(AggregateVersion[E])( _.version)
+  implicit val AggregateIdMeta: Meta[AggregateId[E]] = Meta[String].imap(AggregateId[E])(_.id)
   implicit val InstantMeta: Meta[Instant] = Meta[Timestamp].timap(_.toInstant)(Timestamp.from)
 
   import shapeless._
