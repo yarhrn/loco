@@ -55,7 +55,6 @@ inThisBuild(common)
 
 
 val publishing = List(
-  pgpReadOnly := false,
   organization := "com.yarhrn",
   homepage := Some(url("https://github.com/yarhrn/loco")),
   scmInfo := Some(ScmInfo(url("https://github.com/yarhrn/loco"), "git@github.com:yarhrn/loco.git")),
@@ -65,15 +64,8 @@ val publishing = List(
     url("https://github.com/yarhrn"))),
   licenses += ("MIT", url("https://github.com/yarhrn/loco/blob/master/LICENSE")),
   publishMavenStyle := true,
-  publishTo := Some(
-    if (isSnapshot.value)
-      Opts.resolver.sonatypeSnapshots
-    else
-      Opts.resolver.sonatypeStaging
-  ),
-  publishConfiguration := publishConfiguration.value.withOverwrite(true),
-  releasePublishArtifactsAction := PgpKeys.publishSigned.value
-
+  githubOwner := "yarhrn",
+  githubRepository := "loco"
 )
 
 lazy val noPublishing = Seq(
@@ -108,7 +100,6 @@ lazy val core = (project in file("core"))
     publishing
   )
 
-releasePublishArtifactsAction := PgpKeys.publishSigned.value
 
 lazy val mongodb = (project in file("mongodb"))
   .settings(

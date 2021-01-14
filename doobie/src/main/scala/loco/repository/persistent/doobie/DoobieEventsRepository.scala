@@ -20,7 +20,6 @@ import loco.repository.EventsRepository
 import loco.repository.EventsRepository.ConcurrentModificationException
 import loco.repository.persistent.Codec
 
-import scala.reflect.runtime.universe.TypeTag
 
 case class DoobieEventsRepository[F[_], E <: Event](codec: Codec[E],
                                                               transactor: Transactor[F],
