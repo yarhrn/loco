@@ -9,6 +9,7 @@ services:
 sudo: false
 
 script:
+- export GITHUB_TOKEN="placeholder"
 - sbt "++$TRAVIS_SCALA_VERSION clean" "++$TRAVIS_SCALA_VERSION test"
 
 jdk:
