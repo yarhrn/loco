@@ -100,7 +100,7 @@ lazy val root = project
 
 lazy val core = (project in file("core"))
   .settings(
-    name := "loco-core",
+    name := "core",
     libraryDependencies ++= Seq(
       scalaTest,
       scalaMock,
@@ -115,7 +115,7 @@ lazy val core = (project in file("core"))
 
 lazy val mongodb = (project in file("mongodb"))
   .settings(
-    name := "loco-mongodb",
+    name := "mongodb",
     libraryDependencies ++= Seq(mongodbEmbedded, mongodbReactiveStreams, fs2Reactive),
     publishing
   ).dependsOn(core % "test->test;compile->compile")
@@ -141,7 +141,7 @@ lazy val laws = (project in file("laws")).
 lazy val doobie = (project in file("doobie"))
   .settings(
     common,
-    name := "loco-doobie",
+    name := "doobie",
     libraryDependencies ++= Seq(doobieCore, scalaTest, scalaMock, postgresql, embeddedPostgresql),
     publishing
   ).dependsOn(core % "test->test;compile->compile")
