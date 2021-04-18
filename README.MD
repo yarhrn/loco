@@ -13,7 +13,11 @@ It is used in production for maintaining premium profile in [Pulsoid](https://pu
 
 - Add loco as a dependency 
 ```scala
-libraryDependencies += "com.yarhrn" %% "loco-core" % "0.2.11"
+resolvers += "jitpack" at "https://jitpack.io"
+//one of
+libraryDependencies += "com.github.yarhrn.loco" % "core_2.12" % "v0.2.13"	
+libraryDependencies += "com.github.yarhrn.loco" % "doobie_2.12" % "v0.2.13"	
+libraryDependencies += "com.github.yarhrn.loco" % "mongodb_2.12" % "v0.2.13"
 ```
 - Basic usage
 ```scala
