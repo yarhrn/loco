@@ -63,9 +63,7 @@ val publishing = List(
     "yaroslavh.hryniuk@gmail.com",
     url("https://github.com/yarhrn"))),
   licenses += ("MIT", url("https://github.com/yarhrn/loco/blob/master/LICENSE")),
-  publishMavenStyle := true,
-  githubOwner := "yarhrn",
-  githubRepository := "loco"
+  publishMavenStyle := true
 )
 
 lazy val noPublishing = Seq(
