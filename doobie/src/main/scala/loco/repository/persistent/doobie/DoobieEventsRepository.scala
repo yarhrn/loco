@@ -75,7 +75,8 @@ case class DoobieEventsRepository[F[_], E <: Event](codec: Codec[E],
   }
 
   override def saveEvents(events: NonEmptyList[MetaEvent[E]]) = {
-    Update[MetaEvent[E]](insertEvents, logHandler0 = logHandler)
+    implicit val lh = logHandler
+    Update[MetaEvent[E]](insertEvents)
       .updateMany(events)
       .transact(transactor)
       .adaptError{

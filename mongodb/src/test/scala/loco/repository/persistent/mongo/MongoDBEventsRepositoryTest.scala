@@ -44,7 +44,7 @@ class MongoDBEventsRepositoryTest extends UnitSpec with ITTest {
       .map{ a =>
         Thread.currentThread().getName should be(threadName)
         a
-      }.compile.to[List].unsafeRunSync() shouldBe metaEvents.toList
+      }.compile.toList.unsafeRunSync() shouldBe metaEvents.toList
   }
 
 
