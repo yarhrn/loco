@@ -42,7 +42,7 @@ class DoobieEventsRepositoryTest extends UnitSpec with EmbeddedPosrtesqlDBEnv {
 
     repository.saveEvents(metaEvents).unsafeRunSync()
 
-    repository.fetchEvents(id, AggregateVersion.max).compile.to[List].unsafeRunSync() shouldBe metaEvents.toList
+    repository.fetchEvents(id, AggregateVersion.max).compile.toList.unsafeRunSync() shouldBe metaEvents.toList
     assert(events.events.size == 6, "size should be 6")
   }
 
