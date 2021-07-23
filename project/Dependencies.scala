@@ -7,11 +7,11 @@ object Dependencies {
   lazy val postgresql ="org.postgresql" % "postgresql" % "42.2.8" % Test
   lazy val embeddedPostgresql ="com.dimafeng" %% "testcontainers-scala-postgresql" % "0.34.2" % "test"
 
-  lazy val doobieCore = "org.tpolecat" %% "doobie-core" % "0.8.8"
+  lazy val doobieCore = "org.tpolecat" %% "doobie-core" % "0.13.4"
 
-  lazy val catsEffect = "org.typelevel" %% "cats-effect" % "2.0.0"
-  lazy val fs2Core = "co.fs2" %% "fs2-core" % "2.1.0"
-  lazy val fs2Reactive = "co.fs2" %% "fs2-reactive-streams" % "2.1.0"
+  lazy val catsEffect = "org.typelevel" %% "cats-effect" % "2.5.1"
+  lazy val fs2Core = "co.fs2" %% "fs2-core" % "2.5.6"
+  lazy val fs2Reactive = "co.fs2" %% "fs2-reactive-streams" % "2.5.6"
 
   lazy val jsoniter = "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-core" % "2.1.2"
   lazy val jsoniterMacros = "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % "2.1.2"

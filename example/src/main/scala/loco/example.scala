@@ -1,16 +1,14 @@
 package loco
 
 import java.util.Currency
-
 import cats.data.NonEmptyList
-import cats.effect.IO
+import cats.effect.{IO, Timer}
 import loco.TransactionStatus.TransactionStatus
 import loco.domain.{Aggregate, AggregateId, Event, MetaEvent}
 import loco.repository.InMemoryRepository
 import loco.view.View
 
 import scala.concurrent.ExecutionContext
-
 // Events
 sealed trait TransactionEvent extends Event
 case class TransactionCreated(amount: BigDecimal, currency: Currency, providerAccountId: String) extends TransactionEvent
@@ -47,6 +45,8 @@ object TransactionBuilder extends AggregateBuilder[Transaction, TransactionEvent
 }
 
 object example {
+
+  implicit val timer: Timer[IO] = null
 
   def main(args: Array[String]): Unit = {
     implicit val _ = IO.timer(ExecutionContext.global)
