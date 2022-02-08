@@ -6,7 +6,7 @@ import cats.effect.concurrent.Deferred
 import cats.implicits._
 import fs2.concurrent.Queue
 import loco.command.Command
-import loco.domain.{Aggregate, AggregateId, AggregateVersion, Event}
+import loco.domain.{Aggregate, AggregateId, AggregateVersion, Event, MetaEvent}
 
 object PartitionedEventSource {
 
@@ -41,6 +41,22 @@ object PartitionedEventSource {
       }
 
       override def fetchMetaAggregate(id: AggregateId[E]) = es.fetchMetaAggregate(id)
+
+      /**
+       * Saves the given `meta events`.
+       * Should fail in case an event with some id and version is already exist.
+       */
+      override def saveMetaEvents(events: NonEmptyList[MetaEvent[E]]): F[NonEmptyList[(AggregateId[E], Option[Throwable])]] = {
+        for {
+          d <- Deferred[F, Either[Throwable, NonEmptyList[(AggregateId[E], Option[Throwable])]]]
+          _ <- queue.enqueue1 {
+            es.saveMetaEvents(events)
+              .attempt
+              .flatMap(id => d.complete(id))
+          }
+          id <- d.get.rethrow
+        } yield id
+      }
     }
 
     for {
@@ -68,6 +84,17 @@ object PartitionedEventSource {
       }
 
       override def fetchMetaAggregate(id: AggregateId[E]) = es.fetchMetaAggregate(id)
+
+      /**
+       * Saves the given `meta events`.
+       * Should fail in case an event with some id and version is already exist.
+       */
+      override def saveMetaEvents(events: NonEmptyList[MetaEvent[E]]): F[NonEmptyList[(AggregateId[E], Option[Throwable])]] = {
+        events.toList.groupBy(_.aggregateId).map{
+          case (id, events) =>
+            partitions(id.hashCode() % partitionNumber).saveMetaEvents(NonEmptyList.fromListUnsafe(events))
+        }.toList.sequence.map(_.head)
+      }
     }
   }
 }

@@ -1,9 +1,9 @@
 package loco
 
 import java.sql.DriverManager
-
 import com.dimafeng.testcontainers.PostgreSQLContainer
 import org.scalatest.{BeforeAndAfterAll, Suite}
+import org.testcontainers.utility.DockerImageName
 
 trait EmbeddedPosrtesqlDBEnv extends BeforeAndAfterAll {
   self: Suite =>
@@ -23,6 +23,6 @@ trait EmbeddedPosrtesqlDBEnv extends BeforeAndAfterAll {
     postgres.stop()
   }
 
-  var postgres: PostgreSQLContainer = new PostgreSQLContainer()
+  var postgres: PostgreSQLContainer = new PostgreSQLContainer(Some(DockerImageName.parse("postgres:11")))
 
 }
