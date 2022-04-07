@@ -78,12 +78,16 @@ class DefaultEventSourcingTest extends UnitSpec {
   }
 
   it should "propagate error from repository in saveMetaEvents with two ids" in new ctx {
+    //here
     val ctx1 = new ctx {}
     val error = new RuntimeException("error")
     (repository.saveEvents _).expects(metaEvents).returns(IO.raiseError(error))
     (repository.saveEvents _).expects(ctx1.metaEvents).returns(IO.raiseError(error))
 
-    val NonEmptyList(head,List(tail)) = es.saveMetaEvents(metaEvents.concatNel(ctx1.metaEvents)).unsafeRunSync()
+    val res  = es.saveMetaEvents(metaEvents.concatNel(ctx1.metaEvents)).unsafeRunSync()
+    val head = res.find(_._1 == id).get
+    val tail = res.find(_._1 == ctx1.id).get
+
 
     assert(head._1 == id)
     assert(head._2.contains(error))
