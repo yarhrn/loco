@@ -2,17 +2,20 @@ package loco
 
 import cats.data.NonEmptyList
 import cats.effect.IO
+import cats.effect.kernel.Clock
 import loco.IncrementFixture._
 import loco.domain.{AggregateId, AggregateVersion}
 import loco.repository.EventsRepository
 import loco.test.{ConsoleErrorReporter, ConsoleErrorReporterMatcher, FakeTimer}
 import loco.view.View
+import cats.effect.unsafe.implicits.global
 
 class DefaultEventSourcingTest extends UnitSpec {
 
   trait ctx extends IncrementFixture with ConsoleErrorReporterMatcher[IO] {
 
-    implicit val timer: FakeTimer[IO] = FakeTimer[IO]()
+    val timer: FakeTimer[IO] = FakeTimer[IO]()
+    implicit val clock: Clock[IO] = timer.clock
 
     val repository = mock[EventsRepository[IO, IncrementEvent]]
 

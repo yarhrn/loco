@@ -2,9 +2,10 @@ package loco
 
 import java.time.Instant
 import java.util.Currency
-
+import cats.effect.unsafe.implicits.global
 import cats.data.NonEmptyList
 import cats.effect.IO
+import cats.effect.kernel.Clock
 import loco.domain.{AggregateId, AggregateVersion, MetaEvent}
 import loco.repository._
 import loco.test.{ConsoleErrorReporter, ConsoleErrorReporterMatcher, FakeTimer}
@@ -17,7 +18,8 @@ class ExampleSpec extends AnyFlatSpec with Matchers with MockFactory {
 
   trait EventSourcingContext {
     val mockedView = stub[View[IO, TransactionEvent]]
-    implicit val timer: FakeTimer[IO] = new FakeTimer[IO]()
+    val timer: FakeTimer[IO] = new FakeTimer[IO]()
+    implicit val clock: Clock[IO] = timer.clock
     val errorReporter: ConsoleErrorReporter[IO] = new ConsoleErrorReporter[IO]()
     val eventRepository = InMemoryRepository.unsafeCreate[IO, TransactionEvent]
     val eventSourcing = DefaultEventSourcing[IO, TransactionEvent, Transaction](TransactionBuilder, eventRepository, mockedView, errorReporter)

@@ -2,10 +2,9 @@ package loco.repository.persistent.doobie
 
 import java.sql.{SQLException, Timestamp}
 import java.time.Instant
-
 import cats.Monad
 import cats.data.NonEmptyList
-import cats.effect.Bracket
+import cats.effect.MonadCancel
 import doobie._
 import doobie.implicits._
 import cats.implicits._
@@ -27,7 +26,7 @@ case class DoobieEventsRepository[F[_], E <: Event](codec: Codec[E],
                                                               batchSize: Int = 100,
                                                               tableConfiguration: EventsTableConfiguration,
                                                              )
-                                                             (implicit bracket: Bracket[F, Throwable])
+                                                             (implicit MC: MonadCancel[F, Throwable])
   extends EventsRepository[F, E] {
 
   import doobie.implicits.javasql._

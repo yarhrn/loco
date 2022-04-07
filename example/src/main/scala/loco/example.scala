@@ -1,8 +1,8 @@
 package loco
-
+import cats.effect.unsafe.implicits.global
 import java.util.Currency
 import cats.data.NonEmptyList
-import cats.effect.{IO, Timer}
+import cats.effect.IO
 import loco.TransactionStatus.TransactionStatus
 import loco.domain.{Aggregate, AggregateId, Event, MetaEvent}
 import loco.repository.InMemoryRepository
@@ -46,10 +46,9 @@ object TransactionBuilder extends AggregateBuilder[Transaction, TransactionEvent
 
 object example {
 
-  implicit val timer: Timer[IO] = null
+
 
   def main(args: Array[String]): Unit = {
-    implicit val _ = IO.timer(ExecutionContext.global)
     val repository = InMemoryRepository.unsafeCreate[IO, TransactionEvent]
 
     val eventSourcing = DefaultEventSourcing[IO, TransactionEvent, Transaction](

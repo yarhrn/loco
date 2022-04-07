@@ -2,9 +2,9 @@ package loco
 
 import cats.data.NonEmptyList
 import cats.effect.Concurrent
-import cats.effect.concurrent.Deferred
+import cats.effect.Deferred
+import cats.effect.std.Queue
 import cats.implicits._
-import fs2.concurrent.Queue
 import loco.command.Command
 import loco.domain.{Aggregate, AggregateId, AggregateVersion, Event, MetaEvent}
 
@@ -19,10 +19,10 @@ object PartitionedEventSource {
 
         for {
           d <- Deferred[F, Either[Throwable, AggregateId[E]]]
-          _ <- queue.enqueue1 {
+          _ <- queue.offer {
             es.saveEvents(events, id, lastKnownVersion)
               .attempt
-              .flatMap(id => d.complete(id))
+              .flatMap(id => d.complete(id).void)
           }
           id <- d.get.rethrow
         } yield id
@@ -31,10 +31,10 @@ object PartitionedEventSource {
       override def executeCommand[R](id: AggregateId[E], command: Command[F, E, A, R]) = {
         for {
           d <- Deferred[F, Either[Throwable, R]]
-          _ <- queue.enqueue1 {
+          _ <- queue.offer {
             es.executeCommand(id, command)
               .attempt
-              .flatMap(r => d.complete(r))
+              .flatMap(r => d.complete(r).void)
           }
           r <- d.get.rethrow
         } yield r
@@ -49,10 +49,10 @@ object PartitionedEventSource {
       override def saveMetaEvents(events: NonEmptyList[MetaEvent[E]]): F[NonEmptyList[(AggregateId[E], Option[Throwable])]] = {
         for {
           d <- Deferred[F, Either[Throwable, NonEmptyList[(AggregateId[E], Option[Throwable])]]]
-          _ <- queue.enqueue1 {
+          _ <- queue.offer {
             es.saveMetaEvents(events)
               .attempt
-              .flatMap(id => d.complete(id))
+              .flatMap(id => d.complete(id).void)
           }
           id <- d.get.rethrow
         } yield id
@@ -60,9 +60,7 @@ object PartitionedEventSource {
     }
 
     for {
-      _ <- Concurrent[F].start(queue.dequeue.flatMap {
-        action => fs2.Stream.eval(action)
-      }.compile.drain)
+      _ <- Concurrent[F].start(queue.take.flatten.foreverM).void
     } yield ess
   }
 

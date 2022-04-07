@@ -3,8 +3,6 @@ package loco
 import cats.MonadError
 import cats.effect.Sync
 
-import scala.language.higherKinds
-
 trait ErrorReporter[F[_]] {
   def error(throwable: Throwable): F[Unit]
 }

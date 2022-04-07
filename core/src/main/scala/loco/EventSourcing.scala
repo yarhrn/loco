@@ -54,7 +54,7 @@ class DefaultEventSourcing[F[_], E <: Event, A <: Aggregate[E]](builder: MetaAgg
 
   override def saveEvents(events: NonEmptyList[E], id: AggregateId[E] = AggregateId.random, lastKnownVersion: AggregateVersion[E] = AggregateVersion.none): F[AggregateId[E]] = {
     for {
-      instant <- C.realTime(TimeUnit.MILLISECONDS).map(Instant.ofEpochMilli)
+      instant <- C.realTime.map(d => Instant.ofEpochMilli(d.toMillis))
       metaEvents = MetaEvent.fromRawEvents(id, instant, lastKnownVersion, events)
       res <- saveMetaEvents(metaEvents).map(_.find(_._1 == id).head)
       _ <- res._2.fold(S.unit)(S.raiseError)
@@ -81,7 +81,7 @@ class DefaultEventSourcing[F[_], E <: Event, A <: Aggregate[E]](builder: MetaAgg
 
     for {
       metaAggregate <- fetchMetaAggregate(id).map(_.getOrElse(builder.empty(id)))
-      commandResult <- S.suspend(command.events(metaAggregate.aggregate))
+      commandResult <- command.events(metaAggregate.aggregate)
       result <- commandResult match {
         case SuccessCommand(result, events) => save(metaAggregate.version, events) *> Monad[F].pure(result)
         case FailedCommand(exception, events) => save(metaAggregate.version, events) *> Sync[F].raiseError[R](exception)

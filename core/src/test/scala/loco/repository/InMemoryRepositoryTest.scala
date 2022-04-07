@@ -16,7 +16,7 @@ class InMemoryRepositoryTest extends AnyFlatSpec with Matchers with TestDomainDa
   }
 
   "InMemoryRepository" should "store events" in new ctx {
-
+    import cats.effect.unsafe.implicits.global
     val metaEvent = getMetaEvent(AggregateVersion(1), "Hello world", Users.john)
 
     val result = repository.saveEvents(NonEmptyList.one(metaEvent)).flatMap(_ => repository.fetchEvents(metaEvent.aggregateId).compile.toList)
@@ -25,7 +25,7 @@ class InMemoryRepositoryTest extends AnyFlatSpec with Matchers with TestDomainDa
   }
 
   it should "throw exception in case of same version is saved" in new ctx {
-
+    import cats.effect.unsafe.implicits.global
     val metaEvent = getMetaEvent(AggregateVersion(1), "Hello world", Users.john)
 
     val savingEvents = repository.saveEvents(NonEmptyList.one(metaEvent))
@@ -38,6 +38,7 @@ class InMemoryRepositoryTest extends AnyFlatSpec with Matchers with TestDomainDa
   }
 
   it should "not throw exception but return empty list" in new ctx{
+    import cats.effect.unsafe.implicits.global
     repository.fetchEvents(AggregateId.random).compile.toList.unsafeRunSync() shouldBe List()
   }
 

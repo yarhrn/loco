@@ -2,12 +2,10 @@ package loco.repository
 
 import cats.data.NonEmptyList
 import cats.effect.Sync
-import cats.effect.concurrent.Ref
+import cats.effect.Ref
 import cats.implicits._
 import loco.domain.{AggregateId, AggregateVersion, Event, MetaEvent}
 import loco.repository.EventsRepository.ConcurrentModificationException
-
-import scala.language.higherKinds
 
 case class InMemoryRepository[F[_] : Sync, E <: Event](storage: Ref[F, Map[AggregateId[E], List[MetaEvent[E]]]]) extends EventsRepository[F, E] {
 

@@ -20,7 +20,6 @@ class DoobieEventsRepositoryTest extends UnitSpec with EmbeddedPosrtesqlDBEnv {
   trait ctx extends IncrementFixture {
     val (events, logHandler) = RecordingLogHandler.logHandler
     private val executor = ExecutionContext.fromExecutor(_.run())
-    implicit val cs = IO.contextShift(executor)
     val transactor = Transactor.fromDriverManager[IO](
       "org.postgresql.Driver",
       postgres.jdbcUrl,
@@ -35,7 +34,7 @@ class DoobieEventsRepositoryTest extends UnitSpec with EmbeddedPosrtesqlDBEnv {
   }
 
   "Doobie events repository" should "save events and retrieve events" in new ctx {
-
+    import cats.effect.unsafe.implicits.global
     val metaEvents: NonEmptyList[MetaEvent[IncrementEvent]] = NonEmptyList.fromListUnsafe(
       List.tabulate(10)(counter => metaEventFrom(newEvent, timer.tick().instant, counter + 1))
     )

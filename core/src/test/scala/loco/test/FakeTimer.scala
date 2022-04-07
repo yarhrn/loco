@@ -1,20 +1,24 @@
 package loco.test
 
+import cats.Applicative
+
 import java.time.Instant
+import cats.effect.{Clock, Sync}
 
-import cats.effect.{Clock, Sync, Timer}
-
+import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.{FiniteDuration, TimeUnit}
 
-case class FakeTimer[F[_] : Sync](var millis: Long = System.currentTimeMillis()) extends Timer[F] {
+case class FakeTimer[F[_] : Sync](var millis: Long = System.currentTimeMillis()) {
 
-  override def clock = new Clock[F] {
-    override def realTime(unit: TimeUnit) = Sync[F].pure(millis)
+  def clock = new Clock[F] {
+    override def realTime = Sync[F].pure(FiniteDuration(millis, TimeUnit.MILLISECONDS))
 
-    override def monotonic(unit: TimeUnit) = Sync[F].pure(millis)
+    override def monotonic = Sync[F].pure(FiniteDuration(millis, TimeUnit.MILLISECONDS))
+
+    override def applicative: Applicative[F] = Applicative[F]
   }
 
-  override def sleep(duration: FiniteDuration): F[Unit] = Sync[F].delay(Thread.sleep(duration.toMillis))
+//  override def sleep(duration: FiniteDuration): F[Unit] = Sync[F].delay(Thread.sleep(duration.toMillis))
 
   def tick() = {
     millis = millis + 1000

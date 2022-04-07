@@ -47,7 +47,6 @@ lazy val root = project
   .in(file("."))
   .aggregate(
     core,
-    mongodb,
     doobie,
     example
   )
@@ -61,18 +60,19 @@ lazy val core = (project in file("core"))
       fs2Core,
       catsEffect,
       jsoniter,
-      jsoniterMacros
+      jsoniterMacros,
+      catsEffectStd
     ),
     publishing
   )
 
 
-lazy val mongodb = (project in file("mongodb"))
-  .settings(
-    name := "mongodb",
-    libraryDependencies ++= Seq(mongodbEmbedded, mongodbReactiveStreams, fs2Reactive),
-    publishing
-  ).dependsOn(core % "test->test;compile->compile")
+//lazy val mongodb = (project in file("mongodb"))
+//  .settings(
+//    name := "mongodb",
+//    libraryDependencies ++= Seq(mongodbEmbedded, mongodbReactiveStreams, fs2Reactive),
+//    publishing
+//  ).dependsOn(core % "test->test;compile->compile")
 
 lazy val example = (project in file("example")).
   settings(
