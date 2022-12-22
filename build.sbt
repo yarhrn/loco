@@ -53,7 +53,7 @@ lazy val root = project
 
 lazy val core = (project in file("core"))
   .settings(
-    name := "loco-core",
+    name := "core",
     libraryDependencies ++= Seq(
       scalaTest,
       scalaMock,
@@ -76,7 +76,7 @@ lazy val core = (project in file("core"))
 
 lazy val example = (project in file("example")).
   settings(
-    name := "loco-example",
+    name := "example",
     libraryDependencies ++= Seq(scalaTest, scalaMock),
     noPublishing
   ).dependsOn(core % "test->test;compile->compile")
@@ -94,7 +94,7 @@ lazy val laws = (project in file("laws")).
 lazy val doobie = (project in file("doobie"))
   .settings(
     common,
-    name := "loco-doobie",
+    name := "doobie",
     libraryDependencies ++= Seq(doobieCore, scalaTest, scalaMock, postgresql, embeddedPostgresql),
     publishing
   ).dependsOn(core % "test->test;compile->compile")
