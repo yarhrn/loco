@@ -28,13 +28,13 @@ inThisBuild(common)
 
 val publishing = List(
   organization := "com.yarhrn",
-  homepage := Some(url("https://github.com/yarhrn/simple-scala-json-rpc")),
-  scmInfo := Some(ScmInfo(url("https://github.com/yarhrn/simple-scala-json-rpc"), "git@github.com:yarhrn/simple-scala-json-rpc.git")),
+  homepage := Some(url("https://github.com/yarhrn/loco")),
+  scmInfo := Some(ScmInfo(url("https://github.com/yarhrn/loco"), "git@github.com:yarhrn/loco.git")),
   developers := List(Developer("Yaroslav Hryniuk",
     "Yaroslav Hryniuk",
     "yaroslavh.hryniuk@gmail.com",
     url("https://github.com/yarhrn"))),
-  licenses += ("MIT", url("https://github.com/yarhrn/simple-scala-json-rpc/blob/main/LICENSE")),
+  licenses += ("MIT", url("https://github.com/yarhrn/loco/blob/main/LICENSE")),
   publishMavenStyle := true
 )
 
