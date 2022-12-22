@@ -15,7 +15,6 @@ releaseProcess := Seq[ReleaseStep](
 )
 
 val common = List(
-  organization := "loco",
   scalaVersion := "2.13.6",
 )
 inThisBuild(common)
