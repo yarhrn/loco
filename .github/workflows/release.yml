@@ -24,4 +24,4 @@ jobs:
         distribution: 'temurin'
         cache: 'sbt'
     - name: Release 
-      run: sbt release with-defaults
+      run: sbt "release with-defaults"
