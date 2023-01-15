@@ -1,5 +1,5 @@
 # loco 
-[![Build Status](https://travis-ci.org/yarhrn/loco.svg?branch=master)](https://travis-ci.org/yarhrn/loco)
+[![](https://jitpack.io/v/yarhrn/loco.svg)](https://jitpack.io/#yarhrn/loco)
 
 This project aims to provide a lightweight, composable library for doing event sourcing. 
 
