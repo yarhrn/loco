@@ -14,8 +14,8 @@ It is used in production for maintaining premium profile in [Pulsoid](https://pu
 ```scala
 resolvers += "jitpack" at "https://jitpack.io"
 //one of
-libraryDependencies += "com.github.yarhrn.loco" % "core_2.12" % "v{take version from badge above}"	
-libraryDependencies += "com.github.yarhrn.loco" % "doobie_2.12" % "v{take version from badge above}"	
+libraryDependencies += "com.github.yarhrn.loco" %% "loco-core" % "v{take version from badge above}"
+libraryDependencies += "com.github.yarhrn.loco" %% "loco-doobie" % "v{take version from badge above}"
 ```
 
 ## Core Concepts
