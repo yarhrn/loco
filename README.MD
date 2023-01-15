@@ -2,7 +2,7 @@
 
 This project aims to provide a lightweight, composable library for doing event sourcing. 
 
-The core of loco is very small and built using [tagless final](https://www.youtube.com/watch?v=8sgAUIB8JOY) on top of [cats-effect type classes](https://typelevel.org/cats-effect/typeclasses/).
+The core of loco is compact and built using [tagless final](https://www.youtube.com/watch?v=8sgAUIB8JOY) on top of [cats-effect type classes](https://typelevel.org/cats-effect/typeclasses/).
 
 Right now loco supports PostgreSQL as event storage, but it can be replaced by any other backends by implementing the corresponding [trait](https://github.com/yarhrn/loco/blob/master/core/src/main/scala/loco/repository/EventsRepository.scala).
 
