@@ -65,31 +65,14 @@ lazy val core = (project in file("core"))
     publishing
   )
 
-
-//lazy val mongodb = (project in file("mongodb"))
-//  .settings(
-//    name := "mongodb",
-//    libraryDependencies ++= Seq(mongodbEmbedded, mongodbReactiveStreams, fs2Reactive),
-//    publishing
-//  ).dependsOn(core % "test->test;compile->compile")
-
 lazy val example = (project in file("example")).
   settings(
     name := "loco-example",
     libraryDependencies ++= Seq(scalaTest, scalaMock),
     noPublishing
   ).dependsOn(core % "test->test;compile->compile")
-/*
-lazy val laws = (project in file("laws")).
-  settings(
-    name := "laws",
-    libraryDependencies ++= Seq(scalaTest,
-      scalaMock,
-      "org.typelevel" %% "discipline-core" % "1.1.5",
-      "org.typelevel" %% "cats-laws" % "2.1.0"),
-    noPublishing
-  ).dependsOn(core % "test->test;compile->compile")
-*/
+
+
 lazy val doobie = (project in file("doobie"))
   .settings(
     common,
