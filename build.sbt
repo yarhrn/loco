@@ -14,35 +14,23 @@ releaseProcess := Seq[ReleaseStep](
   pushChanges                             // : ReleaseStep, also checks that an upstream branch is properly configured
 )
 
-val common = List(
-  scalaVersion := "2.13.6",
-)
-inThisBuild(common)
+lazy val scala212 = "2.12.16"
+lazy val scala213 = "2.13.6"
+lazy val supportedScalaVersions = List(scala212, scala213)
 
+ThisBuild / scalaVersion := scala213
+ThisBuild / organization := "com.yarhrn"
+ThisBuild / homepage := Some(url("https://github.com/yarhrn/loco"))
+ThisBuild / scmInfo := Some(ScmInfo(url("https://github.com/yarhrn/loco"), "git@github.com:yarhrn/loco.git"))
+ThisBuild / developers := List(Developer("Yaroslav Hryniuk", "Yaroslav Hryniuk", "yaroslavh.hryniuk@gmail.com", url("https://github.com/yarhrn")))
+ThisBuild / licenses += ("MIT", url("https://github.com/yarhrn/loco/blob/master/LICENSE"))
+ThisBuild / publishMavenStyle := true
 
-
-val publishing = List(
-  organization := "com.yarhrn",
-  homepage := Some(url("https://github.com/yarhrn/loco")),
-  scmInfo := Some(ScmInfo(url("https://github.com/yarhrn/loco"), "git@github.com:yarhrn/loco.git")),
-  developers := List(Developer("Yaroslav Hryniuk",
-    "Yaroslav Hryniuk",
-    "yaroslavh.hryniuk@gmail.com",
-    url("https://github.com/yarhrn"))),
-  licenses += ("MIT", url("https://github.com/yarhrn/loco/blob/master/LICENSE")),
-  publishMavenStyle := true
-)
-
-lazy val noPublishing = Seq(
-  publishArtifact := false,
-  publish := {},
-  publishLocal := {},
-  skip in publish := true,
-  publishTo := Some("dummy" at "nowhere"),
-)
-
-lazy val root = project
-  .settings(noPublishing)
+lazy val loco = project
+  .settings(
+    crossScalaVersions := Nil,
+    publish / skip := true
+  )
   .in(file("."))
   .aggregate(
     core,
@@ -52,6 +40,7 @@ lazy val root = project
 
 lazy val core = (project in file("core"))
   .settings(
+    crossScalaVersions := supportedScalaVersions,
     name := "loco-core",
     libraryDependencies ++= Seq(
       scalaTest,
@@ -61,22 +50,21 @@ lazy val core = (project in file("core"))
       jsoniter,
       jsoniterMacros,
       catsEffectStd
-    ),
-    publishing
+    )
   )
 
 lazy val example = (project in file("example")).
   settings(
     name := "loco-example",
+    crossScalaVersions := supportedScalaVersions,
     libraryDependencies ++= Seq(scalaTest, scalaMock),
-    noPublishing
+    publish / skip := true
   ).dependsOn(core % "test->test;compile->compile")
 
 
 lazy val doobie = (project in file("doobie"))
   .settings(
-    common,
     name := "loco-doobie",
-    libraryDependencies ++= Seq(doobieCore, scalaTest, scalaMock, postgresql, embeddedPostgresql),
-    publishing
+    crossScalaVersions := supportedScalaVersions,
+    libraryDependencies ++= Seq(doobieCore, scalaTest, scalaMock, postgresql, embeddedPostgresql)
   ).dependsOn(core % "test->test;compile->compile")
