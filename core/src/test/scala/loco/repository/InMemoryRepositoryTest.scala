@@ -19,7 +19,9 @@ class InMemoryRepositoryTest extends AnyFlatSpec with Matchers with TestDomainDa
     import cats.effect.unsafe.implicits.global
     val metaEvent = getMetaEvent(AggregateVersion(1), "Hello world", Users.john)
 
-    val result = repository.saveEvents(NonEmptyList.one(metaEvent)).flatMap(_ => repository.fetchEvents(metaEvent.aggregateId).compile.toList)
+    val result = repository
+      .saveEvents(NonEmptyList.one(metaEvent))
+      .flatMap(_ => repository.fetchEvents(metaEvent.aggregateId).compile.toList)
 
     result.unsafeRunSync().head shouldBe metaEvent
   }
@@ -33,16 +35,18 @@ class InMemoryRepositoryTest extends AnyFlatSpec with Matchers with TestDomainDa
       (savingEvents, savingEvents).tupled.unsafeRunSync()
     }
 
-
     repository.fetchEvents(metaEvent.aggregateId).compile.toList.unsafeRunSync().head shouldBe metaEvent
   }
 
-  it should "not throw exception but return empty list" in new ctx{
+  it should "not throw exception but return empty list" in new ctx {
     import cats.effect.unsafe.implicits.global
     repository.fetchEvents(AggregateId.random).compile.toList.unsafeRunSync() shouldBe List()
   }
 
-  def getMetaEvent(version: AggregateVersion[ForumPostEvent], content: String, author: User): MetaEvent[ForumPostEvent] = {
+  def getMetaEvent(
+      version: AggregateVersion[ForumPostEvent],
+      content: String,
+      author: User): MetaEvent[ForumPostEvent] = {
     val postCreated = ForumPostEvents.PostCreated(nextVal(), content, author)
     MetaEvent[ForumPostEvent](postCreated.id, postCreated, postCreated.created, version)
   }

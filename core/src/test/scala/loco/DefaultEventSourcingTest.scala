@@ -21,7 +21,8 @@ class DefaultEventSourcingTest extends UnitSpec {
 
     val view = mock[View[IO, IncrementEvent]]
     val errorReporter = ConsoleErrorReporter[IO]()
-    val es: EventSourcing[IO, IncrementEvent, Increment] = DefaultEventSourcing[IO, IncrementEvent, Increment](IncrementAggregateBuilder, repository, view, errorReporter)
+    val es: EventSourcing[IO, IncrementEvent, Increment] =
+      DefaultEventSourcing[IO, IncrementEvent, Increment](IncrementAggregateBuilder, repository, view, errorReporter)
 
     val metaEvents = NonEmptyList.of(metaEvent1(timer.instant), metaEvent2(timer.instant))
   }
@@ -30,12 +31,14 @@ class DefaultEventSourcingTest extends UnitSpec {
     (repository.saveEvents _).expects(metaEvents).returns(IO.unit)
     (view.handle _).expects(metaEvents).returns(IO.unit)
 
-    noException should be thrownBy es.saveEvents(NonEmptyList.of(event1, event2), id, AggregateVersion.none).unsafeRunSync()
+    noException should be thrownBy es
+      .saveEvents(NonEmptyList.of(event1, event2), id, AggregateVersion.none)
+      .unsafeRunSync()
 
     errorReporter shouldNot haveError
   }
 
-  it should "save events as expected via saveMetaEvents " in new ctx{
+  it should "save events as expected via saveMetaEvents " in new ctx {
     (repository.saveEvents _).expects(metaEvents).returns(IO.unit)
     (view.handle _).expects(metaEvents).returns(IO.unit)
 
@@ -44,8 +47,8 @@ class DefaultEventSourcingTest extends UnitSpec {
     errorReporter shouldNot haveError
   }
 
-  it should "save events as expected via saveMetaEvents with multiple ids" in new ctx{
-    val ctx1 = new ctx{}
+  it should "save events as expected via saveMetaEvents with multiple ids" in new ctx {
+    val ctx1 = new ctx {}
     (repository.saveEvents _).expects(ctx1.metaEvents).returns(IO.unit)
     (repository.saveEvents _).expects(metaEvents).returns(IO.unit)
     (view.handle _).expects(metaEvents).returns(IO.unit)
@@ -60,7 +63,9 @@ class DefaultEventSourcingTest extends UnitSpec {
     val error = new RuntimeException("error")
     (repository.saveEvents _).expects(metaEvents).returns(IO.raiseError(error))
 
-    val exception = the[RuntimeException] thrownBy es.saveEvents(NonEmptyList.of(event1, event2), id, AggregateVersion.none).unsafeRunSync()
+    val exception = the[RuntimeException] thrownBy es
+      .saveEvents(NonEmptyList.of(event1, event2), id, AggregateVersion.none)
+      .unsafeRunSync()
 
     assert(exception == error)
     errorReporter shouldNot haveError
@@ -78,16 +83,15 @@ class DefaultEventSourcingTest extends UnitSpec {
   }
 
   it should "propagate error from repository in saveMetaEvents with two ids" in new ctx {
-    //here
+    // here
     val ctx1 = new ctx {}
     val error = new RuntimeException("error")
     (repository.saveEvents _).expects(metaEvents).returns(IO.raiseError(error))
     (repository.saveEvents _).expects(ctx1.metaEvents).returns(IO.raiseError(error))
 
-    val res  = es.saveMetaEvents(metaEvents.concatNel(ctx1.metaEvents)).unsafeRunSync()
+    val res = es.saveMetaEvents(metaEvents.concatNel(ctx1.metaEvents)).unsafeRunSync()
     val head = res.find(_._1 == id).get
     val tail = res.find(_._1 == ctx1.id).get
-
 
     assert(head._1 == id)
     assert(head._2.contains(error))
@@ -101,7 +105,9 @@ class DefaultEventSourcingTest extends UnitSpec {
     (repository.saveEvents _).expects(metaEvents).returns(IO.unit)
     (view.handle _).expects(metaEvents).returns(IO.raiseError(error))
 
-    noException should be thrownBy es.saveEvents(NonEmptyList.of(event1, event2), id, AggregateVersion.none).unsafeRunSync()
+    noException should be thrownBy es
+      .saveEvents(NonEmptyList.of(event1, event2), id, AggregateVersion.none)
+      .unsafeRunSync()
 
     errorReporter should haveExactError(error)
   }
@@ -111,7 +117,8 @@ class DefaultEventSourcingTest extends UnitSpec {
     (repository.saveEvents _).expects(metaEvents).returns(IO.unit)
     (view.handle _).expects(metaEvents).returns(IO.raiseError(error))
 
-    val res: NonEmptyList[(AggregateId[IncrementEvent], Option[Throwable])] = es.saveMetaEvents(metaEvents).unsafeRunSync()
+    val res: NonEmptyList[(AggregateId[IncrementEvent], Option[Throwable])] =
+      es.saveMetaEvents(metaEvents).unsafeRunSync()
 
     assert(res.length == 1)
     assert(res.head._2.isEmpty)
@@ -119,7 +126,7 @@ class DefaultEventSourcingTest extends UnitSpec {
   }
 
   it should "fetch some meta aggregate" in new ctx {
-    (repository.fetchEvents _).expects(id, AggregateVersion.max).returns( fs2.Stream(metaEvents.toList : _*))
+    (repository.fetchEvents _).expects(id, AggregateVersion.max).returns(fs2.Stream(metaEvents.toList: _*))
 
     es.fetchMetaAggregate(id).unsafeRunSync() should be(Some(aggregate))
   }

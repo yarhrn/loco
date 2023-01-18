@@ -22,20 +22,27 @@ class ExampleSpec extends AnyFlatSpec with Matchers with MockFactory {
     implicit val clock: Clock[IO] = timer.clock
     val errorReporter: ConsoleErrorReporter[IO] = new ConsoleErrorReporter[IO]()
     val eventRepository = InMemoryRepository.unsafeCreate[IO, TransactionEvent]
-    val eventSourcing = DefaultEventSourcing[IO, TransactionEvent, Transaction](TransactionBuilder, eventRepository, mockedView, errorReporter)
+    val eventSourcing = DefaultEventSourcing[IO, TransactionEvent, Transaction](
+      TransactionBuilder,
+      eventRepository,
+      mockedView,
+      errorReporter)
   }
 
   trait TransactionContext {
     val eventTransactionCreated = TransactionCreated(10, Currency.getInstance("BRL"), "provider-account-id-1")
 
-    def aggregateTransactionCreated(id: AggregateId[TransactionEvent]) = Transaction(id, TransactionStatus.New, 10, Currency.getInstance("BRL"), "provider-account-id-1", None, None)
+    def aggregateTransactionCreated(id: AggregateId[TransactionEvent]) =
+      Transaction(id, TransactionStatus.New, 10, Currency.getInstance("BRL"), "provider-account-id-1", None, None)
 
-    def metaEventTransactionCreated(id: AggregateId[TransactionEvent], instant: Instant) = MetaEvent[TransactionEvent](id, eventTransactionCreated, instant, AggregateVersion(1))
+    def metaEventTransactionCreated(id: AggregateId[TransactionEvent], instant: Instant) =
+      MetaEvent[TransactionEvent](id, eventTransactionCreated, instant, AggregateVersion(1))
 
   }
 
-
-  "A EventSourcing" should "generate id and save meta events with proper version and invoke view" in new EventSourcingContext with TransactionContext with ConsoleErrorReporterMatcher[IO] {
+  "A EventSourcing" should "generate id and save meta events with proper version and invoke view" in new EventSourcingContext
+    with TransactionContext
+    with ConsoleErrorReporterMatcher[IO] {
     (mockedView.handle _).when(*).returns(IO.unit)
 
     val id = eventSourcing.saveEvents(NonEmptyList.of(eventTransactionCreated)).unsafeRunSync()

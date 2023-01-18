@@ -9,7 +9,6 @@ trait Codec[E] {
   def decode(e: Array[Byte]): E
 }
 
-
 object Codec {
 
   implicit val CodecInvariant = new Invariant[Codec] {

@@ -7,7 +7,6 @@ trait ErrorReporter[F[_]] {
   def error(throwable: Throwable): F[Unit]
 }
 
-
 object ErrorReporter {
 
   implicit class ErrorReporterOps[F[_]](fa: F[Unit])(implicit ME: MonadError[F, Throwable], ER: ErrorReporter[F]) {
@@ -16,10 +15,11 @@ object ErrorReporter {
     import cats.implicits._
 
     def reportError: F[Unit] = fa.recoverWith {
-      case NonFatal(ex) => ER.error(ex)
+      case NonFatal(ex) =>
+        ER.error(ex)
     }
   }
 
-  def consoleErrorReporter[F[_] : Sync]: ErrorReporter[F] = (e: Throwable) => Sync[F].delay(e.printStackTrace())
+  def consoleErrorReporter[F[_]: Sync]: ErrorReporter[F] = (e: Throwable) => Sync[F].delay(e.printStackTrace())
 
 }

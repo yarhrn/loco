@@ -8,7 +8,7 @@ import cats.effect.{Clock, Sync}
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.{FiniteDuration, TimeUnit}
 
-case class FakeTimer[F[_] : Sync](var millis: Long = System.currentTimeMillis()) {
+case class FakeTimer[F[_]: Sync](var millis: Long = System.currentTimeMillis()) {
 
   def clock = new Clock[F] {
     override def realTime = Sync[F].pure(FiniteDuration(millis, TimeUnit.MILLISECONDS))

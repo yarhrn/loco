@@ -15,9 +15,10 @@ trait EventsRepository[F[_], E <: Event] {
 
 object EventsRepository {
 
-  class ConcurrentModificationException[E <: Event](aggregateId: AggregateId[E],
-                                                              versions: List[AggregateVersion[E]]) extends RuntimeException(
-    s"concurrent modification exception has occurred while saving events for ${aggregateId.id}, versions are ${versions.map(_.version)}"
-  )
+  class ConcurrentModificationException[E <: Event](aggregateId: AggregateId[E], versions: List[AggregateVersion[E]])
+      extends RuntimeException(
+        s"concurrent modification exception has occurred while saving events for ${aggregateId.id}, versions are ${versions
+            .map(_.version)}"
+      )
 
 }

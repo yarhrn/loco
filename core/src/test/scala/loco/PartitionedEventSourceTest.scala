@@ -22,11 +22,14 @@ class PartitionedEventSourceTest extends UnitSpec {
     val repository = InMemoryRepository.unsafeCreate[IO, IncrementEvent]
 
     val errorReporter = ConsoleErrorReporter[IO]()
-    val es: EventSourcing[IO, IncrementEvent, Increment] = DefaultEventSourcing[IO, IncrementEvent, Increment](IncrementAggregateBuilder, repository, View.empty[IO, IncrementEvent], errorReporter)(fakeTimer.clock, Sync[IO])
+    val es: EventSourcing[IO, IncrementEvent, Increment] = DefaultEventSourcing[IO, IncrementEvent, Increment](
+      IncrementAggregateBuilder,
+      repository,
+      View.empty[IO, IncrementEvent],
+      errorReporter)(fakeTimer.clock, Sync[IO])
 
     val metaEvents = NonEmptyList.of(metaEvent1(fakeTimer.instant), metaEvent2(fakeTimer.instant))
   }
-
 
   "DefaultEventSourcing" should "throw an exception in case concurrent modification is occurred" in new ctx {
     import cats.effect.unsafe.implicits.global
@@ -44,7 +47,6 @@ class PartitionedEventSourceTest extends UnitSpec {
     val f = es.executeCommand(id, cmdWithDelay).unsafeToFuture()
 
     es.executeCommand(id, cmd).unsafeRunSync()
-
 
     assertThrows[ConcurrentModificationException[IncrementEvent]] {
       Await.result(f, 20.seconds)
@@ -68,11 +70,9 @@ class PartitionedEventSourceTest extends UnitSpec {
       override def events(a: Increment) = IO(println("instant")) *> IO(CommandResult.success(IncrementEvent()))
     }
 
-
     val f = ess.executeCommand(id, cmdWithDelay).unsafeToFuture()
 
     ess.executeCommand(id, cmd).unsafeRunSync()
-
 
     Await.result(f, 20.seconds)
 

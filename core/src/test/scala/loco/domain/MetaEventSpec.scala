@@ -22,12 +22,14 @@ class MetaEventSpec extends UnitSpec {
     val metaEventsFromVersion0 = NonEmptyList.of(
       MetaEvent(id, events.toList(0), instant, AggregateVersion(1)),
       MetaEvent(id, events.toList(1), instant, AggregateVersion(2)),
-      MetaEvent(id, events.toList(2), instant, AggregateVersion(3)))
+      MetaEvent(id, events.toList(2), instant, AggregateVersion(3))
+    )
 
     val metaEventsFromVersion10 = NonEmptyList.of(
       MetaEvent(id, events.toList(0), instant, AggregateVersion(11)),
       MetaEvent(id, events.toList(1), instant, AggregateVersion(12)),
-      MetaEvent(id, events.toList(2), instant, AggregateVersion(13)))
+      MetaEvent(id, events.toList(2), instant, AggregateVersion(13))
+    )
   }
 
   "MetaEvent" should "proper construct list of meta events from one event" in new ctx {

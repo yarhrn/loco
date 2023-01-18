@@ -1,10 +1,11 @@
 package loco.repository.persistent.doobie
 
-case class EventsTableConfiguration(eventsTable: String,
-                                    aggregateIdColumn: String,
-                                    aggregateVersionColumn: String,
-                                    eventColumn: String,
-                                    createdAtColumn: String) {
+case class EventsTableConfiguration(
+    eventsTable: String,
+    aggregateIdColumn: String,
+    aggregateVersionColumn: String,
+    eventColumn: String,
+    createdAtColumn: String) {
 
   val setup: String =
     s"""
@@ -16,7 +17,6 @@ case class EventsTableConfiguration(eventsTable: String,
         primary key($aggregateIdColumn,$aggregateVersionColumn)
        )
     """
-
 
 }
 

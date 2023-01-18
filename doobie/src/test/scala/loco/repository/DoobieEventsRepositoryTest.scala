@@ -25,11 +25,15 @@ class DoobieEventsRepositoryTest extends UnitSpec with EmbeddedPosrtesqlDBEnv {
       postgres.jdbcUrl,
       postgres.username,
       postgres.password
-
     )
 
     val codec = Codec.fromJsonCodec(IncrementFixture.jsonValueCodec)
-    val repository = DoobieEventsRepository[IO, IncrementEvent](codec, transactor, logHandler, batchSize = 1, tableConfiguration = configuration)
+    val repository = DoobieEventsRepository[IO, IncrementEvent](
+      codec,
+      transactor,
+      logHandler,
+      batchSize = 1,
+      tableConfiguration = configuration)
     val timer = FakeTimer[IO]()
   }
 
@@ -44,6 +48,5 @@ class DoobieEventsRepositoryTest extends UnitSpec with EmbeddedPosrtesqlDBEnv {
     repository.fetchEvents(id, AggregateVersion.max).compile.toList.unsafeRunSync() shouldBe metaEvents.toList
     assert(events.events.size == 6, "size should be 6")
   }
-
 
 }
