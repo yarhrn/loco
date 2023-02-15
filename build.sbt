@@ -14,9 +14,8 @@ releaseProcess := Seq[ReleaseStep](
   pushChanges                             // : ReleaseStep, also checks that an upstream branch is properly configured
 )
 
-lazy val common = List(
-  releaseTagName := s"${if (releaseUseGlobalVersion.value) (ThisBuild / version).value else version.value}"
-)
+lazy val common = List()
+
 
 lazy val scala212 = "2.12.16"
 lazy val scala213 = "2.13.6"
@@ -29,6 +28,7 @@ ThisBuild / scmInfo := Some(ScmInfo(url("https://github.com/yarhrn/loco"), "git@
 ThisBuild / developers := List(Developer("Yaroslav Hryniuk", "Yaroslav Hryniuk", "yaroslavh.hryniuk@gmail.com", url("https://github.com/yarhrn")))
 ThisBuild / licenses += ("MIT", url("https://github.com/yarhrn/loco/blob/master/LICENSE"))
 ThisBuild / publishMavenStyle := true
+releaseTagName := s"${if (releaseUseGlobalVersion.value) (ThisBuild / version).value else version.value}"
 
 lazy val loco = project
   .settings(
