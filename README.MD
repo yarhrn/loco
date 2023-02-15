@@ -6,7 +6,6 @@ The core of `loco` is compact and built using [tagless final](https://www.youtub
 
 Right now loco supports PostgreSQL as event storage, but it can be replaced by any other backends by implementing the corresponding [trait](https://github.com/yarhrn/loco/blob/master/core/src/main/scala/loco/repository/EventsRepository.scala).
 
-It is used in production for maintaining premium profiles in [Pulsoid](https://pulsoid.net)
 
 ## Install
 [![](https://jitpack.io/v/yarhrn/loco.svg)](https://jitpack.io/#yarhrn/loco)
