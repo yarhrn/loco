@@ -14,6 +14,9 @@ releaseProcess := Seq[ReleaseStep](
   pushChanges                             // : ReleaseStep, also checks that an upstream branch is properly configured
 )
 
+lazy val common = List()
+
+
 lazy val scala212 = "2.12.16"
 lazy val scala213 = "2.13.6"
 lazy val supportedScalaVersions = List(scala212, scala213)
@@ -25,11 +28,13 @@ ThisBuild / scmInfo := Some(ScmInfo(url("https://github.com/yarhrn/loco"), "git@
 ThisBuild / developers := List(Developer("Yaroslav Hryniuk", "Yaroslav Hryniuk", "yaroslavh.hryniuk@gmail.com", url("https://github.com/yarhrn")))
 ThisBuild / licenses += ("MIT", url("https://github.com/yarhrn/loco/blob/master/LICENSE"))
 ThisBuild / publishMavenStyle := true
+releaseTagName := s"${if (releaseUseGlobalVersion.value) (ThisBuild / version).value else version.value}"
 
 lazy val loco = project
   .settings(
     crossScalaVersions := Nil,
-    publish / skip := true
+    publish / skip := true,
+    common
   )
   .in(file("."))
   .aggregate(
@@ -50,7 +55,8 @@ lazy val core = (project in file("core"))
       jsoniter,
       jsoniterMacros,
       catsEffectStd
-    )
+    ),
+    common
   )
 
 lazy val example = (project in file("example")).
@@ -58,7 +64,8 @@ lazy val example = (project in file("example")).
     name := "loco-example",
     crossScalaVersions := supportedScalaVersions,
     libraryDependencies ++= Seq(scalaTest, scalaMock),
-    publish / skip := true
+    publish / skip := true,
+    common
   ).dependsOn(core % "test->test;compile->compile")
 
 
@@ -66,5 +73,6 @@ lazy val doobie = (project in file("doobie"))
   .settings(
     name := "loco-doobie",
     crossScalaVersions := supportedScalaVersions,
-    libraryDependencies ++= Seq(doobieCore, scalaTest, scalaMock, postgresql, embeddedPostgresql)
+    libraryDependencies ++= Seq(doobieCore, scalaTest, scalaMock, postgresql, embeddedPostgresql),
+    common
   ).dependsOn(core % "test->test;compile->compile")
