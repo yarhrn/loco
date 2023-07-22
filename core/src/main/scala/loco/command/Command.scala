@@ -9,7 +9,7 @@ trait Command[F[_], E <: Event, A <: Aggregate[E], R] {
 }
 
 object Command {
-  def pure[F[_]: Applicative, E <: Event, A <: Aggregate[E], R](c: A => CommandResult[E, R]) = {
+  def pure[F[_] : Applicative, E <: Event, A <: Aggregate[E], R](c: A => CommandResult[E, R]) = {
     new Command[F, E, A, R] {
       override def events(a: A) = Applicative[F].pure(c(a))
     }
@@ -22,30 +22,17 @@ case class FailedCommand[E <: Event, R](th: Throwable, events: Chain[E] = Chain(
 
 case class SuccessCommand[E <: Event, R](commandResult: R, events: Chain[E] = Chain()) extends CommandResult[E, R] {
   def result[A](a: A): SuccessCommand[E, A] = copy(commandResult = a)
+
   def failed(th: Throwable): FailedCommand[E, R] = FailedCommand(th, events)
 }
 
 object CommandResult {
 
   def events[E <: Event](events: List[E]): SuccessCommand[E, Unit] = {
-    SuccessCommand[E, Unit](Chain.fromSeq(events))
+    SuccessCommand((), Chain.fromSeq(events))
   }
 
-  def events[E <: Event](e: E, events: E*): SuccessCommand[E, Unit] = {
-    SuccessCommand[E, Unit](Chain.fromSeq(events))
+  def events[E <: Event](events: E*): SuccessCommand[E, Unit] = {
+    SuccessCommand((), Chain(events:_*))
   }
-
-  @deprecated
-  def success[E <: Event](e: E, tail: E*): CommandResult[E, Unit] = {
-    SuccessCommand[E, Unit]((), Chain(e) ++ Chain(tail: _*))
-  }
-
-  @deprecated
-  def success[E <: Event, R](r: R, e: E*): CommandResult[E, R] = {
-    SuccessCommand[E, R](r, Chain(e: _*))
-  }
-
-  @deprecated
-  def nothing[E <: Event]: CommandResult[E, Unit] = SuccessCommand[E, Unit]((), Chain())
-
 }

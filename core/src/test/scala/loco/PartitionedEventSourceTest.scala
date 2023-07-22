@@ -38,11 +38,11 @@ class PartitionedEventSourceTest extends UnitSpec {
       override def events(a: Increment) = {
         for {
           _ <- IO.sleep(10 seconds)
-        } yield CommandResult.success(IncrementEvent())
+        } yield CommandResult.events(IncrementEvent())
       }
     }
 
-    val cmd = Command.pure[IO, IncrementEvent, Increment, Unit](_ => CommandResult.success(IncrementEvent()))
+    val cmd = Command.pure[IO, IncrementEvent, Increment, Unit](_ => CommandResult.events(IncrementEvent()))
 
     val f = es.executeCommand(id, cmdWithDelay).unsafeToFuture()
 
@@ -62,12 +62,12 @@ class PartitionedEventSourceTest extends UnitSpec {
       override def events(a: Increment) = {
         for {
           _ <- IO.sleep(10 seconds)
-        } yield CommandResult.success(IncrementEvent())
+        } yield CommandResult.events(IncrementEvent())
       }
     }
 
     val cmd = new Command[IO, IncrementEvent, Increment, Unit] {
-      override def events(a: Increment) = IO(println("instant")) *> IO(CommandResult.success(IncrementEvent()))
+      override def events(a: Increment) = IO(println("instant")) *> IO(CommandResult.events(IncrementEvent()))
     }
 
     val f = ess.executeCommand(id, cmdWithDelay).unsafeToFuture()
