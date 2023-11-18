@@ -9,7 +9,7 @@ trait Command[F[_], E <: Event, A <: Aggregate[E], R] {
 }
 
 object Command {
-  def pure[F[_] : Applicative, E <: Event, A <: Aggregate[E], R](c: A => CommandResult[E, R]) = {
+  def pure[F[_]: Applicative, E <: Event, A <: Aggregate[E], R](c: A => CommandResult[E, R]) = {
     new Command[F, E, A, R] {
       override def events(a: A) = Applicative[F].pure(c(a))
     }
@@ -33,6 +33,6 @@ object CommandResult {
   }
 
   def events[E <: Event](events: E*): SuccessCommand[E, Unit] = {
-    SuccessCommand((), Chain(events:_*))
+    SuccessCommand((), Chain(events: _*))
   }
 }
