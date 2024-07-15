@@ -14,8 +14,8 @@ object Dependencies {
   lazy val fs2Core = "co.fs2" %% "fs2-core" % "3.6.1"
   lazy val fs2Reactive = "co.fs2" %% "fs2-reactive-streams" % "2.5.6"
 
-  lazy val jsoniter = "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-core" % "2.22.2"
-  lazy val jsoniterMacros = "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % "2.22.2"
+  lazy val jsoniter = "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-core" % "2.30.7"
+  lazy val jsoniterMacros = "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % "2.30.7"
 
   lazy val mongodbReactiveStreams = "org.mongodb" % "mongodb-driver-reactivestreams" % "1.13.0"
 
