@@ -1,5 +1,6 @@
 package loco
 
+import cats.effect.IO
 import doobie.util.log._
 
 object RecordingLogHandler {
@@ -12,9 +13,13 @@ object RecordingLogHandler {
     def clear(): Unit = events = List()
   }
 
-  def logHandler: (Events, LogHandler) = {
+  def logHandler: (Events, LogHandler[IO]) = {
     val events = Events()
-    val logHandler = LogHandler(any => events.append(any))
+    val logHandler = new LogHandler[IO] {
+      override def run(logEvent: LogEvent): IO[Unit] = IO {
+        events.append(logEvent)
+      }
+    }
     (events, logHandler)
   }
 

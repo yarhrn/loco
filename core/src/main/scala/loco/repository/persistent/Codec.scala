@@ -11,7 +11,7 @@ trait Codec[E] {
 
 object Codec {
 
-  implicit val CodecInvariant = new Invariant[Codec] {
+  implicit val CodecInvariant: Invariant[Codec] = new Invariant[Codec] {
     override def imap[A, B](fa: Codec[A])(f: A => B)(g: B => A) = new Codec[B] {
       override def encode(e: B) = fa.encode(g(e))
 

@@ -19,13 +19,12 @@ import loco.repository.EventsRepository
 import loco.repository.EventsRepository.ConcurrentModificationException
 import loco.repository.persistent.Codec
 
-case class DoobieEventsRepository[F[_], E <: Event](
-    codec: Codec[E],
-    transactor: Transactor[F],
-    logHandler: LogHandler = LogHandler.nop,
-    batchSize: Int = 100,
-    tableConfiguration: EventsTableConfiguration)(implicit MC: MonadCancel[F, Throwable])
-    extends EventsRepository[F, E] {
+case class DoobieEventsRepository[F[_], E <: Event](codec: Codec[E],
+                                                    transactor: Transactor[F],
+                                                    batchSize: Int = 100,
+                                                    tableConfiguration: EventsTableConfiguration)
+                                                   (implicit MC: MonadCancel[F, Throwable])
+  extends EventsRepository[F, E] {
 
   import doobie.implicits.javasql._
 
@@ -69,14 +68,13 @@ case class DoobieEventsRepository[F[_], E <: Event](
   }
 
   private def fetch(id: String, from: Int, to: Int) = {
-    Query[String :: Int :: Int :: HNil, MetaEvent[E]](selectEvents, logHandler0 = logHandler)
+    Query[String :: Int :: Int :: HNil, MetaEvent[E]](selectEvents)
       .toQuery0(id :: from :: to :: HNil)
       .to[List]
       .transact(transactor)
   }
 
   override def saveEvents(events: NonEmptyList[MetaEvent[E]]) = {
-    implicit val lh = logHandler
     Update[MetaEvent[E]](insertEvents)
       .updateMany(events)
       .transact(transactor)

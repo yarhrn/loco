@@ -18,7 +18,8 @@ lazy val common = List()
 
 lazy val scala212 = "2.12.17"
 lazy val scala213 = "2.13.10"
-lazy val supportedScalaVersions = List(scala212, scala213)
+//lazy val scala34 = "3.4.2"
+lazy val supportedScalaVersions = List(scala213)
 
 ThisBuild / scalaVersion := scala213
 ThisBuild / organization := "com.yarhrn"

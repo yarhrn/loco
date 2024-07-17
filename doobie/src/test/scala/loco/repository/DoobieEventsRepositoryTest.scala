@@ -24,21 +24,23 @@ class DoobieEventsRepositoryTest extends UnitSpec with EmbeddedPosrtesqlDBEnv {
       "org.postgresql.Driver",
       postgres.jdbcUrl,
       postgres.username,
-      postgres.password
+      postgres.password,
+      Some(logHandler)
     )
 
     val codec = Codec.fromJsonCodec(IncrementFixture.jsonValueCodec)
     val repository = DoobieEventsRepository[IO, IncrementEvent](
       codec,
       transactor,
-      logHandler,
       batchSize = 1,
       tableConfiguration = configuration)
     val timer = FakeTimer[IO]()
   }
 
   "Doobie events repository" should "save events and retrieve events" in new ctx {
+
     import cats.effect.unsafe.implicits.global
+
     val metaEvents: NonEmptyList[MetaEvent[IncrementEvent]] = NonEmptyList.fromListUnsafe(
       List.tabulate(10)(counter => metaEventFrom(newEvent, timer.tick().instant, counter + 1))
     )
