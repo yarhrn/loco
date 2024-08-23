@@ -4,7 +4,7 @@ object Dependencies {
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.19" % Test
   lazy val scalaMock = "org.scalamock" %% "scalamock" % "6.0.0" % Test
 
-  lazy val postgresql = "org.postgresql" % "postgresql" % "42.7.3" % Test
+  lazy val postgresql = "org.postgresql" % "postgresql" % "42.7.4" % Test
   lazy val embeddedPostgresql = "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.41.4" % "test"
 
   lazy val doobieCore = "org.tpolecat" %% "doobie-core" % "1.0.0-RC5"
