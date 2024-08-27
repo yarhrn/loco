@@ -11,7 +11,7 @@ object Dependencies {
 
   lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.5.4"
   lazy val catsEffectStd = "org.typelevel" %% "cats-effect-std" % "3.5.4"
-  lazy val fs2Core = "co.fs2" %% "fs2-core" % "3.10.2"
+  lazy val fs2Core = "co.fs2" %% "fs2-core" % "3.11.0"
 
   lazy val jsoniter = "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-core" % "2.30.7"
   lazy val jsoniterMacros = "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % "2.30.7"
