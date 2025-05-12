@@ -1,15 +1,10 @@
 package loco.repository.persistent.doobie
 
-import java.sql.{SQLException, Timestamp}
-import java.time.Instant
 import cats.Monad
 import cats.data.NonEmptyList
 import cats.effect.MonadCancel
-import doobie._
-import doobie.implicits._
 import cats.implicits._
 import doobie.implicits._
-import doobie.util.log.LogHandler
 import doobie.util.meta.Meta
 import doobie.util.query.Query
 import doobie.util.transactor.Transactor
@@ -19,14 +14,15 @@ import loco.repository.EventsRepository
 import loco.repository.EventsRepository.ConcurrentModificationException
 import loco.repository.persistent.Codec
 
+import java.sql.{SQLException, Timestamp}
+import java.time.Instant
+
 case class DoobieEventsRepository[F[_], E <: Event](codec: Codec[E],
                                                     transactor: Transactor[F],
                                                     batchSize: Int = 100,
                                                     tableConfiguration: EventsTableConfiguration)
                                                    (implicit MC: MonadCancel[F, Throwable])
   extends EventsRepository[F, E] {
-
-  import doobie.implicits.javasql._
 
   implicit val EMeta: Meta[E] = Meta[Array[Byte]].imap(codec.decode)(codec.encode)
   implicit val AggregateVersionMeta: Meta[AggregateVersion[E]] =

@@ -11,15 +11,10 @@ releaseProcess := Seq[ReleaseStep](
   tagRelease, // : ReleaseStep
   setNextVersion, // : ReleaseStep
   commitNextVersion, // : ReleaseStep
-  pushChanges // : ReleaseStep, also checks that an upstream branch is properly configured
+  pushChanges // : ReleaseStep, also checks that an upsteam branch is properly configured
 )
 
-lazy val common = List()
-
-lazy val scala212 = "2.12.17"
-lazy val scala213 = "2.13.10"
-//lazy val scala34 = "3.4.2"
-lazy val supportedScalaVersions = List(scala213)
+lazy val scala213 = "2.13.16"
 
 ThisBuild / scalaVersion := scala213
 ThisBuild / organization := "com.yarhrn"
@@ -35,7 +30,6 @@ lazy val loco = project
   .settings(
     crossScalaVersions := Nil,
     publish / skip := true,
-    common
   )
   .in(file("."))
   .aggregate(
@@ -45,7 +39,6 @@ lazy val loco = project
   )
 
 lazy val core = (project in file("core")).settings(
-  crossScalaVersions := supportedScalaVersions,
   name := "loco-core",
   libraryDependencies ++= Seq(
     scalaTest,
@@ -56,24 +49,19 @@ lazy val core = (project in file("core")).settings(
     jsoniterMacros,
     catsEffectStd
   ),
-  common
 )
 
 lazy val example = (project in file("example"))
   .settings(
     name := "loco-example",
-    crossScalaVersions := supportedScalaVersions,
     libraryDependencies ++= Seq(scalaTest, scalaMock),
-    publish / skip := true,
-    common
+    publish / skip := true
   )
   .dependsOn(core % "test->test;compile->compile")
 
 lazy val doobie = (project in file("doobie"))
   .settings(
     name := "loco-doobie",
-    crossScalaVersions := supportedScalaVersions,
     libraryDependencies ++= Seq(doobieCore, scalaTest, scalaMock, postgresql, embeddedPostgresql),
-    common
   )
   .dependsOn(core % "test->test;compile->compile")
