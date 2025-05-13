@@ -9,8 +9,8 @@ object Dependencies {
 
   lazy val doobieCore = "org.tpolecat" %% "doobie-core" % "1.0.0-RC9"
 
-  lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.6.0"
-  lazy val catsEffectStd = "org.typelevel" %% "cats-effect-std" % "3.6.0"
+  lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.6.1"
+  lazy val catsEffectStd = "org.typelevel" %% "cats-effect-std" % "3.6.1"
   lazy val fs2Core = "co.fs2" %% "fs2-core" % "3.12.0"
 
   lazy val jsoniter = "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-core" % "2.30.7"
