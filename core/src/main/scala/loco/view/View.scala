@@ -9,8 +9,6 @@ import loco.ErrorReporter._
 import loco.domain._
 import loco.repository.EventsRepository
 
-import scala.language.higherKinds
-
 trait View[F[_], E <: Event] {
   def handle(events: NonEmptyList[MetaEvent[E]]): F[Unit]
 }

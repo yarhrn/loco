@@ -114,3 +114,4 @@ coursier
 
 # Sourcegraph specific
 index.scip
+.aider*
