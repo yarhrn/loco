@@ -14,7 +14,7 @@ releaseProcess := Seq[ReleaseStep](
   pushChanges // : ReleaseStep, also checks that an upsteam branch is properly configured
 )
 
-lazy val scala213 = "2.13.16"
+lazy val scala213 = "2.13.18"
 
 ThisBuild / scalaVersion := scala213
 ThisBuild / organization := "com.yarhrn"
@@ -29,7 +29,7 @@ releaseTagName := s"${if (releaseUseGlobalVersion.value) (ThisBuild / version).v
 lazy val loco = project
   .settings(
     crossScalaVersions := Nil,
-    publish / skip := true,
+    publish / skip := true
   )
   .in(file("."))
   .aggregate(
@@ -48,7 +48,7 @@ lazy val core = (project in file("core")).settings(
     jsoniter,
     jsoniterMacros,
     catsEffectStd
-  ),
+  )
 )
 
 lazy val example = (project in file("example"))
@@ -62,6 +62,6 @@ lazy val example = (project in file("example"))
 lazy val doobie = (project in file("doobie"))
   .settings(
     name := "loco-doobie",
-    libraryDependencies ++= Seq(doobieCore, scalaTest, scalaMock, postgresql, embeddedPostgresql),
+    libraryDependencies ++= Seq(doobieCore, scalaTest, scalaMock, postgresql, embeddedPostgresql)
   )
   .dependsOn(core % "test->test;compile->compile")
