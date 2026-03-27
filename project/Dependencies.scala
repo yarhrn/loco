@@ -1,7 +1,7 @@
 import sbt._
 
 object Dependencies {
-  lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.19" % Test
+  lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.20" % Test
   lazy val scalaMock = "org.scalamock" %% "scalamock" % "6.0.0" % Test
 
   lazy val postgresql = "org.postgresql" % "postgresql" % "42.7.3" % Test
