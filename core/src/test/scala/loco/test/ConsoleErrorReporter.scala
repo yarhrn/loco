@@ -20,7 +20,7 @@ trait ConsoleErrorReporterMatcher[F[_]] {
 
   import matchers._
 
-  def haveError: Matcher[ConsoleErrorReporter[F]] = { left: ConsoleErrorReporter[F] =>
+  def haveError: Matcher[ConsoleErrorReporter[F]] = { (left: ConsoleErrorReporter[F]) =>
     MatchResult(
       left.errors.nonEmpty,
       s"no errors occurred, but expected",
@@ -28,7 +28,7 @@ trait ConsoleErrorReporterMatcher[F[_]] {
       IndexedSeq())
   }
 
-  def haveExactError(ex: Throwable): Matcher[ConsoleErrorReporter[F]] = { left: ConsoleErrorReporter[F] =>
+  def haveExactError(ex: Throwable): Matcher[ConsoleErrorReporter[F]] = { (left: ConsoleErrorReporter[F]) =>
     MatchResult(
       left.errors.head == ex && left.errors.size == 1,
       s"errors occurred ${left.errors}, but expected $ex",

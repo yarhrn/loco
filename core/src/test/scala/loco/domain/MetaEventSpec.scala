@@ -11,7 +11,7 @@ class MetaEventSpec extends UnitSpec {
     case class DumbEvent(discriminator: Int) extends Event
 
     val event: NonEmptyList[DumbEvent] = NonEmptyList.of(DumbEvent(1))
-    val events: NonEmptyList[DumbEvent] = NonEmptyList.fromListUnsafe((1 to 3).map(DumbEvent).toList)
+    val events: NonEmptyList[DumbEvent] = NonEmptyList.fromListUnsafe((1 to 3).map(DumbEvent(_)).toList)
 
     val id = AggregateId[DumbEvent]("test")
 

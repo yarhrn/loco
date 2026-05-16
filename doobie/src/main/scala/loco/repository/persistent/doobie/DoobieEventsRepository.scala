@@ -30,7 +30,6 @@ case class DoobieEventsRepository[F[_], E <: Event](codec: Codec[E],
   implicit val AggregateIdMeta: Meta[AggregateId[E]] = Meta[String].imap(AggregateId[E])(_.id)
   implicit val InstantMeta: Meta[Instant] = Meta[Timestamp].timap(_.toInstant)(Timestamp.from)
 
-  import shapeless._
   import tableConfiguration._
 
   val selectEvents =
@@ -64,8 +63,8 @@ case class DoobieEventsRepository[F[_], E <: Event](codec: Codec[E],
   }
 
   private def fetch(id: String, from: Int, to: Int) = {
-    Query[String :: Int :: Int :: HNil, MetaEvent[E]](selectEvents)
-      .toQuery0(id :: from :: to :: HNil)
+    Query[(String, Int, Int), MetaEvent[E]](selectEvents)
+      .toQuery0((id, from, to))
       .to[List]
       .transact(transactor)
   }

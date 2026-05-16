@@ -14,9 +14,9 @@ releaseProcess := Seq[ReleaseStep](
   pushChanges // : ReleaseStep, also checks that an upsteam branch is properly configured
 )
 
-lazy val scala213 = "2.13.16"
+lazy val scala3 = "3.3.7"
 
-ThisBuild / scalaVersion := scala213
+ThisBuild / scalaVersion := scala3
 ThisBuild / organization := "com.yarhrn"
 ThisBuild / homepage := Some(url("https://github.com/yarhrn/loco"))
 ThisBuild / scmInfo := Some(ScmInfo(url("https://github.com/yarhrn/loco"), "git@github.com:yarhrn/loco.git"))
