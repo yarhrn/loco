@@ -35,6 +35,8 @@ lazy val loco = project
   .aggregate(
     core,
     doobie,
+    skunk,
+    interop,
     example
   )
 
@@ -65,3 +67,22 @@ lazy val doobie = (project in file("doobie"))
     libraryDependencies ++= Seq(doobieCore, scalaTest, scalaMock, postgresql, embeddedPostgresql),
   )
   .dependsOn(core % "test->test;compile->compile")
+
+lazy val skunk = (project in file("skunk"))
+  .settings(
+    name := "loco-skunk",
+    libraryDependencies ++= Seq(skunkCore, scalaTest, scalaMock, postgresql, embeddedPostgresql),
+  )
+  .dependsOn(core % "test->test;compile->compile")
+
+lazy val interop = (project in file("interop"))
+  .settings(
+    name := "loco-interop",
+    libraryDependencies ++= Seq(scalaTest, scalaMock, postgresql, embeddedPostgresql),
+    publish / skip := true
+  )
+  .dependsOn(
+    core % "test->test;compile->compile",
+    doobie % "test->test;compile->compile",
+    skunk % "test->test;compile->compile"
+  )

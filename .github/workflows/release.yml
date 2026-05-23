@@ -24,5 +24,7 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
         cache: 'sbt'
-    - name: Release 
+    - name: Set up sbt
+      uses: sbt/setup-sbt@v1
+    - name: Release
       run: sbt "release with-defaults"
