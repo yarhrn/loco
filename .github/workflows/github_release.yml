@@ -3,14 +3,17 @@ on:
   push:
     tags:
       - 'v*'
+      - '[0-9]*'
+
+permissions:
+  contents: write
+
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Create a Release
-      uses: elgohr/Github-Release-Action@v4
-      env:
-        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-      with:
-        title: ${{ GITHUB_REF_NAME }}
+      - uses: actions/checkout@v4
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true

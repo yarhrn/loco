@@ -4,17 +4,21 @@ This project aims to provide a lightweight, composable library for building even
 
 The core of `loco` is compact and built using [tagless final](https://www.youtube.com/watch?v=8sgAUIB8JOY) on top of [cats-effect type classes](https://typelevel.org/cats-effect/docs/typeclasses/).
 
-Right now loco supports PostgreSQL as event storage, but it can be replaced by any other backends by implementing the corresponding [trait](https://github.com/yarhrn/loco/blob/master/core/src/main/scala/loco/repository/EventsRepository.scala).
+Right now loco supports PostgreSQL as event storage via two implementations: [Doobie](https://tpolecat.github.io/doobie/) (`loco-doobie`) and [Skunk](https://github.com/typelevel/skunk) (`loco-skunk`, experimental). It can be replaced by any other backends by implementing the corresponding [trait](https://github.com/yarhrn/loco/blob/master/core/src/main/scala/loco/repository/EventsRepository.scala).
 
+Requires Scala 3.3.7 or later.
 
 ## Install
 [![](https://jitpack.io/v/yarhrn/loco.svg)](https://jitpack.io/#yarhrn/loco)
 
 ```scala
 resolvers += "jitpack" at "https://jitpack.io"
-//one of
+
 libraryDependencies += "com.github.yarhrn.loco" %% "loco-core" % "{take version from badge above}"
+// PostgreSQL via Doobie
 libraryDependencies += "com.github.yarhrn.loco" %% "loco-doobie" % "{take version from badge above}"
+// PostgreSQL via Skunk (experimental)
+libraryDependencies += "com.github.yarhrn.loco" %% "loco-skunk" % "{take version from badge above}"
 ```
 
 ## Glossary
