@@ -9,7 +9,7 @@ object Dependencies {
 
   lazy val doobieCore = "org.tpolecat" %% "doobie-core" % "1.0.0-RC12"
 
-  lazy val skunkCore = "org.tpolecat" %% "skunk-core" % "1.0.0-M10"
+  lazy val skunkCore = "org.tpolecat" %% "skunk-core" % "1.0.0"
 
   lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.7.0"
   lazy val catsEffectStd = "org.typelevel" %% "cats-effect-std" % "3.7.0"
