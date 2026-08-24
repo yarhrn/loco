@@ -11,8 +11,8 @@ object Dependencies {
 
   lazy val skunkCore = "org.tpolecat" %% "skunk-core" % "1.0.0-M10"
 
-  lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.7.0"
-  lazy val catsEffectStd = "org.typelevel" %% "cats-effect-std" % "3.7.0"
+  lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.7.1"
+  lazy val catsEffectStd = "org.typelevel" %% "cats-effect-std" % "3.7.1"
   lazy val fs2Core = "co.fs2" %% "fs2-core" % "3.13.0"
 
   lazy val jsoniter = "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-core" % "2.38.12"
