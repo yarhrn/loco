@@ -2,7 +2,7 @@ package loco.repository
 
 import cats.data.NonEmptyList
 import cats.effect.IO
-import doobie.util.transactor.Transactor
+import org.typelevel.doobie.util.transactor.Transactor
 import loco.IncrementFixture._
 import loco._
 import loco.domain.{AggregateVersion, MetaEvent}

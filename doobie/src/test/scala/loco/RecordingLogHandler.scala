@@ -1,7 +1,7 @@
 package loco
 
 import cats.effect.IO
-import doobie.util.log._
+import org.typelevel.doobie.util.log._
 
 object RecordingLogHandler {
 
