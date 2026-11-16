@@ -4,11 +4,11 @@ import cats.Monad
 import cats.data.NonEmptyList
 import cats.effect.MonadCancel
 import cats.implicits._
-import doobie.implicits._
-import doobie.util.meta.Meta
-import doobie.util.query.Query
-import doobie.util.transactor.Transactor
-import doobie.util.update.Update
+import org.typelevel.doobie.implicits._
+import org.typelevel.doobie.util.meta.Meta
+import org.typelevel.doobie.util.query.Query
+import org.typelevel.doobie.util.transactor.Transactor
+import org.typelevel.doobie.util.update.Update
 import loco.domain.{AggregateId, AggregateVersion, Event, MetaEvent}
 import loco.repository.EventsRepository
 import loco.repository.EventsRepository.ConcurrentModificationException
